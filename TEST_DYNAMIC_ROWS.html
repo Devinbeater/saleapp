@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Row Expansion Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+
+        .info {
+            background: #e0f2fe;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2563eb;
+        }
+
+        .info h3 {
+            color: #1e40af;
+            margin-bottom: 5px;
+        }
+
+        .info ul {
+            margin-left: 20px;
+            color: #334155;
+        }
+
+        .grid-container {
+            overflow: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            max-height: 500px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            background: #f1f5f9;
+            z-index: 10;
+        }
+
+        th {
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+            border-right: 1px solid #cbd5e1;
+            color: #1e293b;
+        }
+
+        th:last-child {
+            border-right: none;
+        }
+
+        td {
+            padding: 0;
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            height: 40px;
+        }
+
+        td:last-child {
+            border-right: none;
+        }
+
+        input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding: 8px;
+            font-size: 14px;
+            background: transparent;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            background: #f8fafc;
+            border: 2px solid #2563eb;
+            border-radius: 3px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 5px;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        .new-row {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .highlight {
+            background: #fef3c7 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Dynamic Row Expansion Test</h1>
+        
+        <div class="info">
+            <h3>How to Test:</h3>
+            <ul>
+                <li>Start typing in any cell</li>
+                <li>When you type in one of the last 3 rows, new rows will automatically appear</li>
+                <li>Press <strong>Enter</strong> to move down, <strong>Tab</strong> to move right</li>
+                <li>Each column expands independently</li>
+                <li>Watch the statistics update in real-time</li>
+            </ul>
+        </div>
+
+        <div class="grid-container">
+            <table id="spreadsheet">
+                <thead>
+                    <tr>
+                        <th style="background: rgba(59, 130, 246, 0.1);">POS (Point of Sale)</th>
+                        <th style="background: rgba(16, 185, 129, 0.1);">Kotak QR</th>
+                        <th style="background: rgba(245, 158, 11, 0.1);">Kotak Swipe</th>
+                        <th style="background: rgba(239, 68, 68, 0.1);">Debtors</th>
+                    </tr>
+                </thead>
+                <tbody id="grid-body">
+                    <!-- Rows will be generated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">Total Rows</div>
+                <div class="stat-value" id="total-rows">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">POS Rows</div>
+                <div class="stat-value" id="pos-rows">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">KQR Rows</div>
+                <div class="stat-value" id="kqr-rows">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">KSW Rows</div>
+                <div class="stat-value" id="ksw-rows">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Debtor Rows</div>
+                <div class="stat-value" id="debtor-rows">0</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const MIN_SPARE_ROWS = 3;
+        const INITIAL_ROWS = 10;
+        const SECTIONS = ['POS', 'KQR', 'KSW', 'DEBTOR'];
+
+        // Data storage
+        const sheetData = {
+            POS: [],
+            KQR: [],
+            KSW: [],
+            DEBTOR: []
+        };
+
+        // Initialize data
+        function initializeData() {
+            SECTIONS.forEach(section => {
+                sheetData[section] = Array.from({ length: INITIAL_ROWS }, () => ({ value: '' }));
+            });
+        }
+
+        // Render all rows
+        function renderAllRows() {
+            const gridBody = document.getElementById('grid-body');
+            const maxRows = Math.max(...SECTIONS.map(s => sheetData[s].length));
+            
+            gridBody.innerHTML = '';
+            
+            for (let row = 0; row < maxRows; row++) {
+                const tr = document.createElement('tr');
+                tr.dataset.rowIndex = row;
+                
+                SECTIONS.forEach(section => {
+                    const td = document.createElement('td');
+                    const input = document.createElement('input');
+                    
+                    input.type = 'text';
+                    input.dataset.section = section;
+                    input.dataset.rowIndex = row;
+                    input.placeholder = '0';
+                    input.value = sheetData[section][row]?.value || '';
+                    
+                    input.addEventListener('input', handleCellInput);
+                    input.addEventListener('keydown', handleKeydown);
+                    
+                    td.appendChild(input);
+                    tr.appendChild(td);
+                });
+                
+                gridBody.appendChild(tr);
+            }
+            
+            updateStats();
+        }
+
+        // Handle cell input
+        function handleCellInput(event) {
+            const input = event.target;
+            const section = input.dataset.section;
+            const rowIndex = parseInt(input.dataset.rowIndex);
+            const value = input.value;
+            
+            // Update data
+            if (!sheetData[section][rowIndex]) {
+                sheetData[section][rowIndex] = { value: '' };
+            }
+            sheetData[section][rowIndex].value = value;
+            
+            // Check if expansion needed
+            checkAndExpandRows(section);
+        }
+
+        // Check and expand rows
+        function checkAndExpandRows(section) {
+            const data = sheetData[section];
+            
+            // Count empty rows at end
+            let emptyRowsAtEnd = 0;
+            for (let i = data.length - 1; i >= 0; i--) {
+                if (!data[i].value || data[i].value.trim() === '') {
+                    emptyRowsAtEnd++;
+                } else {
+                    break;
+                }
+            }
+            
+            // Add rows if needed
+            if (emptyRowsAtEnd < MIN_SPARE_ROWS) {
+                const rowsToAdd = MIN_SPARE_ROWS - emptyRowsAtEnd;
+                for (let i = 0; i < rowsToAdd; i++) {
+                    sheetData[section].push({ value: '' });
+                }
+                
+                // Re-render with animation
+                renderAllRows();
+                
+                // Highlight new rows briefly
+                setTimeout(() => {
+                    const rows = document.querySelectorAll('tr');
+                    rows.forEach((row, idx) => {
+                        if (idx >= data.length - rowsToAdd) {
+                            row.classList.add('new-row');
+                        }
+                    });
+                }, 10);
+            }
+        }
+
+        // Handle keyboard navigation
+        function handleKeydown(event) {
+            const input = event.target;
+            const section = input.dataset.section;
+            const rowIndex = parseInt(input.dataset.rowIndex);
+            
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const nextRow = rowIndex + 1;
+                const nextInput = document.querySelector(`input[data-section="${section}"][data-row-index="${nextRow}"]`);
+                if (nextInput) {
+                    nextInput.focus();
+                }
+            } else if (event.key === 'Tab' && !event.shiftKey) {
+                event.preventDefault();
+                const currentSectionIndex = SECTIONS.indexOf(section);
+                let nextSectionIndex = currentSectionIndex + 1;
+                let nextRow = rowIndex;
+                
+                if (nextSectionIndex >= SECTIONS.length) {
+                    nextSectionIndex = 0;
+                    nextRow++;
+                }
+                
+                const nextSection = SECTIONS[nextSectionIndex];
+                const nextInput = document.querySelector(`input[data-section="${nextSection}"][data-row-index="${nextRow}"]`);
+                if (nextInput) {
+                    nextInput.focus();
+                }
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            const maxRows = Math.max(...SECTIONS.map(s => sheetData[s].length));
+            document.getElementById('total-rows').textContent = maxRows;
+            document.getElementById('pos-rows').textContent = sheetData.POS.length;
+            document.getElementById('kqr-rows').textContent = sheetData.KQR.length;
+            document.getElementById('ksw-rows').textContent = sheetData.KSW.length;
+            document.getElementById('debtor-rows').textContent = sheetData.DEBTOR.length;
+        }
+
+        // Initialize on load
+        initializeData();
+        renderAllRows();
+    </script>
+</body>
+</html>

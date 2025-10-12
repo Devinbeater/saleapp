@@ -256,14 +256,16 @@ input:checked + .slider:before {
 .spreadsheet-container {
     background-color: var(--bg-primary);
     border-radius: var(--spacing-2);
-    overflow: hidden;
+    overflow: auto;
     border: 1px solid var(--border-color);
+    max-height: calc(100vh - 300px);
 }
 
 .spreadsheet-grid {
     width: 100%;
     border-collapse: collapse;
     font-size: var(--font-size-sm);
+    table-layout: fixed;
 }
 
 .header-row {
@@ -294,11 +296,12 @@ input:checked + .slider:before {
 }
 
 .grid-cell {
-    padding: var(--spacing-2);
+    padding: 0;
     border-right: 1px solid var(--border-color);
     position: relative;
-    min-width: 100px;
+    width: 25%;
     height: 40px;
+    vertical-align: middle;
 }
 
 .grid-cell:last-child {
@@ -314,11 +317,13 @@ input:checked + .slider:before {
     font-size: var(--font-size-sm);
     padding: var(--spacing-2);
     outline: none;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    box-sizing: border-box;
 }
 
 .grid-cell input:focus {
     background-color: var(--bg-secondary);
+    border: 2px solid var(--primary-color);
     border-radius: var(--spacing-1);
 }
 
@@ -817,38 +822,51 @@ input:checked + .slider:before {
 /* Cell Input Styles */
 .spreadsheet-grid .cell-input {
     width: 100%;
-    padding: 5px;
-    border: 1px solid #ddd;
-    background: white;
+    padding: var(--spacing-2);
+    border: none;
+    background: transparent;
     font-family: inherit;
-    font-size: inherit;
-    color: inherit;
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
     box-sizing: border-box;
     outline: none;
-    height: 30px;
-    min-height: 30px;
+    height: 40px;
+    min-height: 40px;
+    transition: all 0.2s ease;
 }
 
 body.dark-theme .spreadsheet-grid .cell-input {
-    background: #3a3f4a;
-    border-color: #555;
-    color: #f0f0f0;
+    background: transparent;
+    color: var(--text-primary);
 }
 
 .spreadsheet-grid .cell-input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+    background-color: var(--bg-secondary);
+    border: 2px solid var(--primary-color);
+    border-radius: var(--spacing-1);
 }
 
 .spreadsheet-grid .cell-input.calculated-cell {
-    font-weight: bold;
-    color: var(--secondary-color);
-    background: #f0f8ff;
+    font-weight: 600;
+    color: var(--primary-color);
+    background-color: rgba(37, 99, 235, 0.05);
 }
 
 body.dark-theme .spreadsheet-grid .cell-input.calculated-cell {
-    background: #1a2332;
-    color: #81d4fa;
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--primary-color);
+}
+
+/* Total row styling */
+.total-row {
+    background-color: var(--bg-tertiary);
+    font-weight: 600;
+}
+
+.total-row .grid-cell input {
+    font-weight: 600;
+    background-color: var(--bg-tertiary);
+    color: var(--primary-color);
 }
 
 /* Print Styles */

@@ -7,7 +7,8 @@ class UIManager {
     constructor() {
         this.currentSheetId = null;
         this.currentDate = new Date().toISOString().split('T')[0];
-        this.gridRows = 25; // Default number of rows per section
+        this.gridRows = 25; // Initial number of rows per section
+        this.minSpareRows = 3; // Always keep at least 3 empty rows at the bottom
         this.denominations = [
             { value: 500, label: '₹500' },
             { value: 200, label: '₹200' },
@@ -20,6 +21,13 @@ class UIManager {
             { value: 1, label: '₹1' },
             { value: 0, label: 'Coupons' }
         ];
+        // Track data for each section
+        this.sheetData = {
+            POS: [],
+            KQR: [],
+            KSW: [],
+            DEBTOR: []
+        };
         this.initializeEventListeners();
     }
 
@@ -137,7 +145,35 @@ class UIManager {
 
         const sections = ['POS', 'KQR', 'KSW', 'DEBTOR'];
         
-        for (let row = 0; row < this.gridRows; row++) {
+        // Initialize sheet data with empty rows
+        sections.forEach(section => {
+            if (!this.sheetData[section] || this.sheetData[section].length === 0) {
+                this.sheetData[section] = Array.from({ length: this.gridRows }, () => ({ value: '' }));
+            }
+        });
+        
+        // Render rows based on sheetData
+        this.renderAllRows();
+
+        // Add total rows
+        this.addTotalRows(gridBody);
+    }
+
+    /**
+     * Render all rows dynamically
+     */
+    renderAllRows() {
+        const gridBody = document.getElementById('grid-body');
+        if (!gridBody) return;
+
+        // Clear existing data rows (keep total rows)
+        const dataRows = gridBody.querySelectorAll('.grid-row:not(.total-row)');
+        dataRows.forEach(row => row.remove());
+
+        const sections = ['POS', 'KQR', 'KSW', 'DEBTOR'];
+        const maxRows = Math.max(...sections.map(s => this.sheetData[s].length));
+        
+        for (let row = 0; row < maxRows; row++) {
             const tr = document.createElement('tr');
             tr.className = 'grid-row';
             tr.dataset.rowIndex = row;
@@ -153,13 +189,13 @@ class UIManager {
                 input.dataset.section = section;
                 input.dataset.rowIndex = row;
                 input.placeholder = '0';
-                input.style.width = '100%';
-                input.style.height = '30px';
-                input.style.border = '1px solid #ccc';
-                input.style.padding = '5px';
-                input.style.boxSizing = 'border-box';
+                input.value = this.sheetData[section][row]?.value || '';
                 
                 // Add event listeners
+                input.addEventListener('input', (event) => {
+                    this.handleCellInput(event);
+                });
+                
                 input.addEventListener('blur', (event) => {
                     this.handleCellBlur(event);
                 });
@@ -178,9 +214,6 @@ class UIManager {
 
             gridBody.appendChild(tr);
         }
-
-        // Add total rows
-        this.addTotalRows(gridBody);
     }
 
     /**
@@ -264,6 +297,59 @@ class UIManager {
     }
 
     /**
+     * Handle cell input event (for auto-expansion)
+     */
+    handleCellInput(event) {
+        const input = event.target;
+        const section = input.dataset.section;
+        const rowIndex = parseInt(input.dataset.rowIndex);
+        const value = input.value;
+
+        // Update sheet data
+        if (!this.sheetData[section][rowIndex]) {
+            this.sheetData[section][rowIndex] = { value: '' };
+        }
+        this.sheetData[section][rowIndex].value = value;
+
+        // Check if we need to expand rows
+        this.checkAndExpandRows(section);
+    }
+
+    /**
+     * Check if we need to add more rows and expand if necessary
+     */
+    checkAndExpandRows(section) {
+        const data = this.sheetData[section];
+        
+        // Count empty rows at the end
+        let emptyRowsAtEnd = 0;
+        for (let i = data.length - 1; i >= 0; i--) {
+            if (!data[i].value || data[i].value.trim() === '') {
+                emptyRowsAtEnd++;
+            } else {
+                break;
+            }
+        }
+
+        // If we have fewer than minSpareRows empty rows, add more
+        if (emptyRowsAtEnd < this.minSpareRows) {
+            const rowsToAdd = this.minSpareRows - emptyRowsAtEnd;
+            for (let i = 0; i < rowsToAdd; i++) {
+                this.sheetData[section].push({ value: '' });
+            }
+            
+            // Re-render the grid
+            this.renderAllRows();
+            
+            // Restore total rows if they were removed
+            const gridBody = document.getElementById('grid-body');
+            if (gridBody && !gridBody.querySelector('.total-row')) {
+                this.addTotalRows(gridBody);
+            }
+        }
+    }
+
+    /**
      * Handle cell blur event
      */
     handleCellBlur(event) {
@@ -334,11 +420,12 @@ class UIManager {
         const section = input.dataset.section;
         const nextRow = currentRow + 1;
         
-        if (nextRow < this.gridRows) {
-            const nextCell = document.querySelector(`input[data-section="${section}"][data-row-index="${nextRow}"]`);
-            if (nextCell) {
-                nextCell.focus();
-            }
+        // Auto-expand if needed before moving
+        this.checkAndExpandRows(section);
+        
+        const nextCell = document.querySelector(`input[data-section="${section}"][data-row-index="${nextRow}"]`);
+        if (nextCell) {
+            nextCell.focus();
         }
     }
 
@@ -359,12 +446,14 @@ class UIManager {
             nextRow++;
         }
         
-        if (nextRow < this.gridRows) {
-            const nextSection = sections[nextSectionIndex];
-            const nextCell = document.querySelector(`input[data-section="${nextSection}"][data-row-index="${nextRow}"]`);
-            if (nextCell) {
-                nextCell.focus();
-            }
+        const nextSection = sections[nextSectionIndex];
+        
+        // Auto-expand if needed before moving
+        this.checkAndExpandRows(nextSection);
+        
+        const nextCell = document.querySelector(`input[data-section="${nextSection}"][data-row-index="${nextRow}"]`);
+        if (nextCell) {
+            nextCell.focus();
         }
     }
 
@@ -495,6 +584,11 @@ class UIManager {
         try {
             // Load entries
             const entries = await apiClient.getEntries(this.currentSheetId);
+            
+            // Populate sheetData from entries
+            this.populateSheetDataFromEntries(entries);
+            
+            // Load into formula engine
             formulaEngine.loadFromEntries(entries);
 
             // Load denominations
@@ -504,6 +598,57 @@ class UIManager {
         } catch (error) {
             console.error('Error loading sheet data:', error);
         }
+    }
+
+    /**
+     * Populate sheet data from entries
+     */
+    populateSheetDataFromEntries(entries) {
+        const sections = ['POS', 'KQR', 'KSW', 'DEBTOR'];
+        
+        // Reset sheet data
+        sections.forEach(section => {
+            this.sheetData[section] = [];
+        });
+
+        // Find max row index for each section
+        const maxRowIndex = {};
+        sections.forEach(section => {
+            maxRowIndex[section] = 0;
+        });
+
+        entries.forEach(entry => {
+            const section = entry.section;
+            const rowIdx = entry.row_idx || 0;
+            
+            if (sections.includes(section)) {
+                maxRowIndex[section] = Math.max(maxRowIndex[section], rowIdx);
+            }
+        });
+
+        // Initialize arrays with proper size
+        sections.forEach(section => {
+            const size = Math.max(maxRowIndex[section] + 1, this.gridRows);
+            this.sheetData[section] = Array.from({ length: size }, () => ({ value: '' }));
+        });
+
+        // Populate with actual data
+        entries.forEach(entry => {
+            const section = entry.section;
+            const rowIdx = entry.row_idx || 0;
+            
+            if (sections.includes(section) && this.sheetData[section][rowIdx]) {
+                this.sheetData[section][rowIdx].value = entry.raw_value || '';
+            }
+        });
+
+        // Ensure minimum spare rows
+        sections.forEach(section => {
+            this.checkAndExpandRows(section);
+        });
+
+        // Re-render the grid
+        this.renderAllRows();
     }
 
     /**
@@ -556,26 +701,26 @@ class UIManager {
      */
     collectEntriesData() {
         const entries = [];
-        const inputs = document.querySelectorAll('input[data-cell-key]');
+        const sections = ['POS', 'KQR', 'KSW', 'DEBTOR'];
         
-        inputs.forEach(input => {
-            const cellKey = input.dataset.cellKey;
-            const section = input.dataset.section;
-            const rowIndex = parseInt(input.dataset.rowIndex) || 0;
-            const rawValue = input.value.trim();
-            
-            if (rawValue) {
-                const calculatedValue = formulaEngine.getCalculatedValue(cellKey);
+        sections.forEach(section => {
+            this.sheetData[section].forEach((row, rowIndex) => {
+                const rawValue = row.value?.trim();
                 
-                entries.push({
-                    section,
-                    row_idx: rowIndex,
-                    cell_key: cellKey,
-                    raw_value: rawValue,
-                    calculated_value: calculatedValue,
-                    metadata: {}
-                });
-            }
+                if (rawValue) {
+                    const cellKey = `${section}_AMOUNT_${rowIndex}`;
+                    const calculatedValue = formulaEngine.getCalculatedValue(cellKey);
+                    
+                    entries.push({
+                        section,
+                        row_idx: rowIndex,
+                        cell_key: cellKey,
+                        raw_value: rawValue,
+                        calculated_value: calculatedValue,
+                        metadata: {}
+                    });
+                }
+            });
         });
         
         return entries;
@@ -699,6 +844,17 @@ class UIManager {
      */
     handleDateChange(newDate) {
         this.currentDate = newDate;
+    }
+
+    /**
+     * Clear current data and reset grid
+     */
+    clearCurrentData() {
+        const sections = ['POS', 'KQR', 'KSW', 'DEBTOR'];
+        sections.forEach(section => {
+            this.sheetData[section] = Array.from({ length: this.gridRows }, () => ({ value: '' }));
+        });
+        this.renderAllRows();
     }
 }
 

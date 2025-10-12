@@ -27,16 +27,21 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/index.html'));
 });
 
-// Catch-all route for frontend (must be after API routes)
-// This handles client-side routing for single-page apps
-app.get('/*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/index.html'));
-});
-
-// Error handling middleware
+// Error handling middleware (must be defined before catch-all)
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(500).json({ error: 'Internal server error' });
+});
+
+// Catch-all route for frontend (must be LAST, after all API routes and error handler)
+// This handles client-side routing and serves index.html for any unmatched routes
+app.use((req, res) => {
+  // Only serve index.html for non-API routes
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../client/index.html'));
+  } else {
+    res.status(404).json({ error: 'API route not found' });
+  }
 });
 
 app.listen(PORT, () => {

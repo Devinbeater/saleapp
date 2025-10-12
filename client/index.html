@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Register</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <!-- Header Section -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="app-title">DAILY REGISTER</h1>
+            <div class="date-display">
+                <input type="date" id="sheet-date" class="date-input">
+            </div>
+            <div class="theme-toggle">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label">Dark Mode</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <div class="main-container">
+        <!-- Left Panel - Daily Financial Overview -->
+        <main class="main-content">
+            <div class="overview-section">
+                <h2 class="section-title">Daily Financial Overview</h2>
+                
+                <div class="sheet-note">
+                    <label for="sheet-note-input">Sheet Note (Optional)</label>
+                    <input type="text" id="sheet-note-input" placeholder="Add any notes for this sheet...">
+                </div>
+
+                <div class="help-text">
+                    <i class="fas fa-info-circle"></i>
+                    Type = for formulas. Ctrl+/ for help.
+                </div>
+
+                <!-- Spreadsheet Grid -->
+                <div class="spreadsheet-container">
+                    <table class="spreadsheet-grid" id="main-grid">
+                        <thead>
+                            <tr class="header-row">
+                                <th class="section-header pos-col">POS (POINT OF SALE)</th>
+                                <th class="section-header kqr-col">KOTAK QR</th>
+                                <th class="section-header ksw-col">KOTAK SWIPE</th>
+                                <th class="section-header debtor-col">DEBTORS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="grid-body">
+                            <!-- Dynamic rows will be generated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Formula Overlay -->
+                <div class="formula-overlay" id="formula-overlay">
+                    <div class="formula-content">
+                        <div class="formula-text" id="formula-text"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar - Report & Actions -->
+        <aside class="sidebar">
+            <div class="sidebar-content">
+                <h3 class="sidebar-title">REPORT & ACTIONS</h3>
+
+                <!-- Cash Summary -->
+                <div class="cash-summary">
+                    <h4>Cash Summary</h4>
+                    <div class="summary-item">
+                        <label>TOTAL SALE:</label>
+                        <span class="calculated-field" id="total-sale">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <label>NET AMOUNT:</label>
+                        <span class="calculated-field" id="net-amount">0</span>
+                    </div>
+                </div>
+
+                <!-- Denominations -->
+                <div class="denominations-section">
+                    <h4>Denominations</h4>
+                    <table class="denominations-table">
+                        <thead>
+                            <tr>
+                                <th>Denom</th>
+                                <th>Pieces</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="denominations-body">
+                            <!-- Dynamic denomination rows -->
+                        </tbody>
+                    </table>
+                    <div class="denomination-total">
+                        <label>Total Cash:</label>
+                        <span id="total-cash">0</span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="actions-section">
+                    <h4>Actions</h4>
+                    <div class="export-buttons">
+                        <button class="btn btn-secondary" id="export-csv">
+                            <i class="fas fa-file-csv"></i> Export CSV
+                        </button>
+                        <button class="btn btn-secondary" id="export-pdf">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </button>
+                    </div>
+                    
+                    <button class="btn btn-primary save-btn" id="save-sheet">
+                        <i class="fas fa-save"></i> Save (Ctrl+S)
+                    </button>
+                    
+                    <button class="btn btn-white" id="generate-report">
+                        <i class="fas fa-file-alt"></i> Generate Report (Ctrl+P)
+                    </button>
+                </div>
+
+                <!-- Load Previous Date -->
+                <div class="load-section">
+                    <h4>Load Previous Date</h4>
+                    <div class="date-picker">
+                        <input type="date" id="load-date" class="load-date-input">
+                        <button class="btn btn-secondary" id="load-date-btn">
+                            <i class="fas fa-calendar"></i> Load
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Status Bar -->
+                <div class="status-bar" id="status-bar">
+                    <i class="fas fa-check-circle"></i>
+                    <span>All changes saved</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal" id="help-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Keyboard Shortcuts & Help</h3>
+                <button class="modal-close" id="close-help">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcuts-list">
+                    <div class="shortcut-item">
+                        <kbd>Ctrl/Cmd + S</kbd>
+                        <span>Save sheet</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl/Cmd + Shift + S</kbd>
+                        <span>Export options</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl/Cmd + /</kbd>
+                        <span>Toggle help</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl/Cmd + =</kbd>
+                        <span>Insert SUM formula</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Shift + Enter</kbd>
+                        <span>Previous row</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Enter</kbd>
+                        <span>Next row</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl/Cmd + P</kbd>
+                        <span>Generate report</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>Ctrl/Cmd + R</kbd>
+                        <span>Recalculate</span>
+                    </div>
+                </div>
+                
+                <div class="formula-help">
+                    <h4>Formula Examples:</h4>
+                    <ul>
+                        <li><code>=SUM(POS_1:POS_25)</code> - Sum range</li>
+                        <li><code>=POS_1 + POS_2</code> - Addition</li>
+                        <li><code>=KQR_TOTAL * 0.05</code> - Percentage</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Libraries -->
+    <script src="lib/hyperformula.min.js"></script>
+    <script src="https://unpkg.com/xlsx@latest/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/file-saver@latest/dist/FileSaver.min.js"></script>
+
+    <!-- Application Modules -->
+    <script src="modules/api.js"></script>
+    <script src="modules/formulaEngine.js"></script>
+    <script src="modules/persistence.js"></script>
+    <script src="modules/ui.js"></script>
+    <script src="modules/keyboardShortcuts.js"></script>
+    <script src="modules/exportUtils.js"></script>
+    <script src="modules/validation.js"></script>
+
+    <!-- Main Application -->
+    <script src="app.js"></script>
+</body>
+</html>
+

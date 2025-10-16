@@ -996,6 +996,18 @@ body.dark-theme .day-status.closed {
     font-size: var(--font-size-lg);
 }
 
+.opening-denom-table tfoot .info-row td {
+    padding: var(--spacing-2);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.opening-denom-table tfoot .difference-row td {
+    padding: var(--spacing-3);
+    font-size: var(--font-size-lg);
+    font-weight: bold;
+}
+
 /* Day Closing Checklist */
 .closing-checklist {
     margin-bottom: var(--spacing-6);

@@ -595,11 +595,109 @@
         </div>
     </div>
 
-    <!-- Day Close Modal -->
+    <!-- Closing Cash Modal -->
+    <div class="modal" id="closing-cash-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Day End - Closing Cash</h3>
+                <button class="modal-close" id="close-closing-cash-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">Enter the closing cash denomination breakdown:</p>
+                
+                <table class="opening-denom-table">
+                    <thead>
+                        <tr>
+                            <th>Denomination</th>
+                            <th>No. of Pcs</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>₹2000</td>
+                            <td><input type="number" id="closing-denom-2000" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="closing-amount-2000">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹500</td>
+                            <td><input type="number" id="closing-denom-500" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="closing-amount-500">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹200</td>
+                            <td><input type="number" id="closing-denom-200" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="closing-amount-200">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹100</td>
+                            <td><input type="number" id="closing-denom-100" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="closing-amount-100">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹50</td>
+                            <td><input type="number" id="closing-denom-50" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="closing-amount-50">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹20</td>
+                            <td><input type="number" id="closing-denom-20" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="closing-amount-20">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹10</td>
+                            <td><input type="number" id="closing-denom-10" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="closing-amount-10">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹5</td>
+                            <td><input type="number" id="closing-denom-5" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="closing-amount-5">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹2</td>
+                            <td><input type="number" id="closing-denom-2" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="closing-amount-2">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹1</td>
+                            <td><input type="number" id="closing-denom-1" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="closing-amount-1">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>Coins</td>
+                            <td colspan="2"><input type="number" id="closing-coins" step="0.01" min="0" class="form-input" placeholder="Enter coins amount"></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="2"><strong>Total Closing Cash:</strong></td>
+                            <td class="amount-cell"><strong id="closing-total-display">₹0.00</strong></td>
+                        </tr>
+                        <tr class="info-row">
+                            <td colspan="2">Expected Cash:</td>
+                            <td class="amount-cell" id="expected-cash-display">₹0.00</td>
+                        </tr>
+                        <tr class="difference-row">
+                            <td colspan="2"><strong>Difference:</strong></td>
+                            <td class="amount-cell"><strong id="cash-difference-display">₹0.00</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancel-closing-cash">Cancel</button>
+                    <button class="btn btn-primary" id="confirm-closing-cash">Continue to Close Day</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day Close Confirmation Modal -->
     <div class="modal" id="day-close-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Day Closing</h3>
+                <h3>Day Closing - Final Confirmation</h3>
                 <button class="modal-close" id="close-day-close-modal">&times;</button>
             </div>
             <div class="modal-body">

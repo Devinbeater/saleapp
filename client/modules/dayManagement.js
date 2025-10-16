@@ -8,6 +8,7 @@ class DayManagementManager {
         this.currentDayData = null;
         this.isDayClosed = false;
         this.openingDenominations = {};
+        this.closingDenominations = {};
         this.initializeEventListeners();
     }
 
@@ -27,14 +28,17 @@ class DayManagementManager {
         const closeDayBtn = document.getElementById('close-day-btn');
         if (closeDayBtn) {
             closeDayBtn.addEventListener('click', () => {
-                this.openDayCloseModal();
+                this.openClosingCashModal(); // Show closing cash modal first
             });
         }
 
         // Opening cash modal handlers
         this.setupOpeningCashModal();
         
-        // Day closing modal handlers
+        // Closing cash modal handlers
+        this.setupClosingCashModal();
+        
+        // Day closing confirmation modal handlers
         this.setupDayCloseModal();
     }
 
@@ -262,6 +266,205 @@ class DayManagementManager {
 
         // Update UI
         this.updateDayStatus();
+    }
+
+    /**
+     * Setup Closing Cash Modal
+     */
+    setupClosingCashModal() {
+        const closeBtn = document.getElementById('close-closing-cash-modal');
+        const cancelBtn = document.getElementById('cancel-closing-cash');
+        const confirmBtn = document.getElementById('confirm-closing-cash');
+        const modal = document.getElementById('closing-cash-modal');
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                this.closeClosingCashModal();
+            });
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                this.closeClosingCashModal();
+            });
+        }
+
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', () => {
+                this.handleClosingCashConfirm();
+            });
+        }
+
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.closeClosingCashModal();
+                }
+            });
+        }
+
+        // Add input listeners for closing denomination calculation
+        this.setupClosingDenominationInputs();
+    }
+
+    /**
+     * Setup closing denomination inputs for auto-calculation
+     */
+    setupClosingDenominationInputs() {
+        const denominations = [2000, 500, 200, 100, 50, 20, 10, 5, 2, 1];
+        
+        denominations.forEach(denom => {
+            const input = document.getElementById(`closing-denom-${denom}`);
+            if (input) {
+                input.addEventListener('input', () => {
+                    this.calculateClosingTotal();
+                });
+            }
+        });
+
+        // Coins input
+        const coinsInput = document.getElementById('closing-coins');
+        if (coinsInput) {
+            coinsInput.addEventListener('input', () => {
+                this.calculateClosingTotal();
+            });
+        }
+    }
+
+    /**
+     * Calculate closing total from denominations
+     */
+    calculateClosingTotal() {
+        const denominations = [2000, 500, 200, 100, 50, 20, 10, 5, 2, 1];
+        let total = 0;
+
+        denominations.forEach(denom => {
+            const input = document.getElementById(`closing-denom-${denom}`);
+            const amountSpan = document.getElementById(`closing-amount-${denom}`);
+            
+            if (input && amountSpan) {
+                const pieces = parseInt(input.value) || 0;
+                const amount = pieces * denom;
+                amountSpan.textContent = amount.toFixed(2);
+                total += amount;
+            }
+        });
+
+        // Add coins
+        const coinsInput = document.getElementById('closing-coins');
+        if (coinsInput) {
+            total += parseFloat(coinsInput.value) || 0;
+        }
+
+        // Update total display
+        const totalDisplay = document.getElementById('closing-total-display');
+        if (totalDisplay) {
+            totalDisplay.textContent = `₹${total.toFixed(2)}`;
+        }
+
+        // Calculate and show expected cash
+        const expectedCash = typeof calculationsManager !== 'undefined' 
+            ? calculationsManager.getAvailableCash() 
+            : 0;
+        const expectedDisplay = document.getElementById('expected-cash-display');
+        if (expectedDisplay) {
+            expectedDisplay.textContent = `₹${expectedCash.toFixed(2)}`;
+        }
+
+        // Calculate and show difference
+        const difference = total - expectedCash;
+        const differenceDisplay = document.getElementById('cash-difference-display');
+        if (differenceDisplay) {
+            differenceDisplay.textContent = `₹${difference.toFixed(2)}`;
+            
+            // Color code the difference
+            if (Math.abs(difference) < 0.01) {
+                differenceDisplay.style.color = '#10b981'; // Green
+            } else if (difference > 0) {
+                differenceDisplay.style.color = '#3b82f6'; // Blue (excess)
+            } else {
+                differenceDisplay.style.color = '#ef4444'; // Red (shortage)
+            }
+        }
+
+        return total;
+    }
+
+    /**
+     * Open Closing Cash Modal
+     */
+    openClosingCashModal() {
+        const modal = document.getElementById('closing-cash-modal');
+        if (modal) {
+            // Reset all inputs
+            const denominations = [2000, 500, 200, 100, 50, 20, 10, 5, 2, 1];
+            denominations.forEach(denom => {
+                const input = document.getElementById(`closing-denom-${denom}`);
+                if (input) input.value = '';
+                const amountSpan = document.getElementById(`closing-amount-${denom}`);
+                if (amountSpan) amountSpan.textContent = '0.00';
+            });
+
+            const coinsInput = document.getElementById('closing-coins');
+            if (coinsInput) coinsInput.value = '';
+
+            // Reset displays
+            const totalDisplay = document.getElementById('closing-total-display');
+            if (totalDisplay) totalDisplay.textContent = '₹0.00';
+
+            // Calculate expected cash
+            this.calculateClosingTotal();
+
+            modal.classList.add('show');
+        }
+    }
+
+    /**
+     * Close Closing Cash Modal
+     */
+    closeClosingCashModal() {
+        const modal = document.getElementById('closing-cash-modal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+    }
+
+    /**
+     * Handle Closing Cash Confirmation
+     */
+    handleClosingCashConfirm() {
+        const total = this.calculateClosingTotal();
+
+        if (total <= 0) {
+            alert('⚠️ Please enter closing cash denominations!');
+            return;
+        }
+
+        // Save closing denominations
+        const denominations = [2000, 500, 200, 100, 50, 20, 10, 5, 2, 1];
+        this.closingDenominations = {};
+
+        denominations.forEach(denom => {
+            const input = document.getElementById(`closing-denom-${denom}`);
+            if (input) {
+                this.closingDenominations[denom] = parseInt(input.value) || 0;
+            }
+        });
+
+        const coinsInput = document.getElementById('closing-coins');
+        if (coinsInput) {
+            this.closingDenominations['coins'] = parseFloat(coinsInput.value) || 0;
+        }
+
+        // Save to localStorage
+        localStorage.setItem('pos_closing_denominations', JSON.stringify(this.closingDenominations));
+        localStorage.setItem('pos_closing_total', total.toString());
+
+        // Close closing cash modal
+        this.closeClosingCashModal();
+
+        // Now open the day close confirmation modal
+        this.openDayCloseModal();
     }
 
     /**

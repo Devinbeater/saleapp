@@ -152,26 +152,13 @@ class UIManager {
             });
         }
 
-        // Opening Cash and BharatPE inputs
+        // Opening Cash input
         const openingCashInput = document.getElementById('opening-cash');
-        const bharatpeInput = document.getElementById('bharatpe');
 
         if (openingCashInput) {
             openingCashInput.addEventListener('input', () => {
                 this.openingCash = parseFloat(openingCashInput.value) || 0;
                 this.updateCalculations();
-            });
-        }
-
-        if (bharatpeInput) {
-            bharatpeInput.addEventListener('input', () => {
-                this.bharatpe = parseFloat(bharatpeInput.value) || 0;
-                this.updateCalculations();
-                
-                // Update modal handlers if available
-                if (typeof modalHandlers !== 'undefined') {
-                    modalHandlers.updateExpensesSummary();
-                }
             });
         }
 

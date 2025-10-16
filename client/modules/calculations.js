@@ -77,10 +77,10 @@ class CalculationsManager {
     }
 
     /**
-     * Get Kotak QR total
+     * Get QR total
      * @returns {number}
      */
-    getKotakQR() {
+    getQR() {
         let total = 0;
         const inputs = document.querySelectorAll('input[data-section="KQR"][data-field-type="AMOUNT"]');
         inputs.forEach(input => {
@@ -93,10 +93,10 @@ class CalculationsManager {
     }
 
     /**
-     * Get Kotak Swipe total
+     * Get Swipe total
      * @returns {number}
      */
-    getKotakSwipe() {
+    getSwipe() {
         let total = 0;
         const inputs = document.querySelectorAll('input[data-section="KSW"][data-field-type="AMOUNT"]');
         inputs.forEach(input => {
@@ -109,10 +109,10 @@ class CalculationsManager {
     }
 
     /**
-     * Get Kotak Swipe count
+     * Get Swipe count
      * @returns {number}
      */
-    getKotakSwipeCount() {
+    getSwipeCount() {
         let count = 0;
         const inputs = document.querySelectorAll('input[data-section="KSW"][data-field-type="AMOUNT"]');
         inputs.forEach(input => {
@@ -157,12 +157,11 @@ class CalculationsManager {
     }
 
     /**
-     * Get BharatPE amount
+     * Get Total QR Sale (sum of all QR amounts)
      * @returns {number}
      */
-    getBharatPE() {
-        const input = document.getElementById('bharatpe');
-        return parseFloat(input?.value || 0);
+    getTotalQRSale() {
+        return this.getQR();
     }
 
     /**
@@ -176,32 +175,30 @@ class CalculationsManager {
 
     /**
      * Calculate Net Amount
-     * Formula: Debit Cash - (KQR + KSW + Debtors + BharatPE)
+     * Formula: Debit Cash - (QR + Swipe + Debtors)
      * @returns {number}
      */
     getNetAmount() {
         const debitCash = this.getDebitCash();
-        const kqr = this.getKotakQR();
-        const ksw = this.getKotakSwipe();
+        const qr = this.getQR();
+        const swipe = this.getSwipe();
         const debtors = this.getDebtors();
-        const bharatpe = this.getBharatPE();
         
-        return debitCash - (kqr + ksw + debtors + bharatpe);
+        return debitCash - (qr + swipe + debtors);
     }
 
     /**
      * Calculate Total Collection
-     * Formula: Denominations + KQR + KSW + BharatPE + Collections
+     * Formula: Denominations + QR + Swipe + Collections
      * @returns {number}
      */
     getTotalCollection() {
         const denominations = this.getDenominationTotal();
-        const kqr = this.getKotakQR();
-        const ksw = this.getKotakSwipe();
-        const bharatpe = this.getBharatPE();
+        const qr = this.getQR();
+        const swipe = this.getSwipe();
         const collections = this.getTotalCollections();
         
-        return denominations + kqr + ksw + bharatpe + collections;
+        return denominations + qr + swipe + collections;
     }
 
     /**
@@ -232,8 +229,8 @@ class CalculationsManager {
         this.updateDisplay('net-amount', netAmount);
 
         // SWIPE (with count)
-        const swipeTotal = this.getKotakSwipe();
-        const swipeCount = this.getKotakSwipeCount();
+        const swipeTotal = this.getSwipe();
+        const swipeCount = this.getSwipeCount();
         this.updateDisplay('swipe-total', swipeTotal, swipeCount);
 
         // DEBTORS (with count)
@@ -241,7 +238,9 @@ class CalculationsManager {
         const debtorsCount = this.getDebtorsCount();
         this.updateDisplay('debtors-total', debtorsTotal, debtorsCount);
 
-        // BHARATPE (already has input, just update if needed)
+        // Total QR Sale
+        const totalQRSale = this.getTotalQRSale();
+        this.updateDisplay('total-qr-sale', totalQRSale);
         
         // Collection (with count)
         const collectionTotal = this.getTotalCollections();

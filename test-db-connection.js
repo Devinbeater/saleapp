@@ -10,20 +10,30 @@ console.log('🔍 Testing Database Connection...\n');
 
 // Show configuration (without password)
 console.log('📋 Configuration:');
-console.log('   DB_HOST:', process.env.DB_HOST || 'localhost');
-console.log('   DB_PORT:', process.env.DB_PORT || '5432');
-console.log('   DB_NAME:', process.env.DB_NAME || 'daily_sheet_db');
-console.log('   DB_USER:', process.env.DB_USER || 'postgres');
-console.log('   DB_PASSWORD:', process.env.DB_PASSWORD ? `***SET*** (length: ${process.env.DB_PASSWORD.length})` : '***NOT SET***');
+if (process.env.DATABASE_URL) {
+    console.log('   Mode: Cloud (using DATABASE_URL)');
+    console.log('   DATABASE_URL:', process.env.DATABASE_URL ? '***SET***' : '***NOT SET***');
+} else {
+    console.log('   Mode: Local (using individual variables)');
+    console.log('   DB_HOST:', process.env.DB_HOST || 'localhost');
+    console.log('   DB_PORT:', process.env.DB_PORT || '5432');
+    console.log('   DB_NAME:', process.env.DB_NAME || 'daily_sheet_db');
+    console.log('   DB_USER:', process.env.DB_USER || 'postgres');
+    console.log('   DB_PASSWORD:', process.env.DB_PASSWORD ? `***SET*** (length: ${process.env.DB_PASSWORD.length})` : '***NOT SET***');
+}
 console.log('');
 
-// Create pool
+// Create pool (supports both local and cloud)
 const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT) || 5432,
-    database: process.env.DB_NAME || 'daily_sheet_db',
-    user: process.env.DB_USER || 'postgres',
-    password: String(process.env.DB_PASSWORD || ''),
+    connectionString: process.env.DATABASE_URL
+        ? `${process.env.DATABASE_URL}?sslmode=require`
+        : undefined,
+    host: process.env.DATABASE_URL ? undefined : (process.env.DB_HOST || 'localhost'),
+    port: process.env.DATABASE_URL ? undefined : (parseInt(process.env.DB_PORT) || 5432),
+    database: process.env.DATABASE_URL ? undefined : (process.env.DB_NAME || 'daily_sheet_db'),
+    user: process.env.DATABASE_URL ? undefined : (process.env.DB_USER || 'postgres'),
+    password: process.env.DATABASE_URL ? undefined : String(process.env.DB_PASSWORD || ''),
+    ssl: process.env.DATABASE_URL ? { require: true, rejectUnauthorized: false } : false,
 });
 
 // Test query

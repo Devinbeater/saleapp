@@ -65,10 +65,9 @@
                         <thead>
                             <tr class="main-header-row">
                                 <th colspan="8" class="main-section-header pos-header">POS</th>
-                                <th colspan="3" class="main-section-header kqr-header">KOTAK QR</th>
-                                <th colspan="3" class="main-section-header ksw-header">KOTAK SWIPE</th>
+                                <th colspan="3" class="main-section-header kqr-header">QR</th>
+                                <th colspan="3" class="main-section-header ksw-header">SWIPE</th>
                                 <th colspan="4" class="main-section-header debtor-header">DEBTORS</th>
-                                <th colspan="1" class="main-section-header cash-header">Cash</th>
                             </tr>
                             <tr class="sub-header-row">
                                 <!-- POS Section: 4 groups of SR.NO + AMOUNT -->
@@ -80,11 +79,11 @@
                                 <th class="sub-header">AMOUNT</th>
                                 <th class="sub-header">SR.<br>NO.</th>
                                 <th class="sub-header">AMOUNT</th>
-                                <!-- KOTAK QR Section -->
+                                <!-- QR Section -->
                                 <th class="sub-header">SR.<br>NO.</th>
                                 <th class="sub-header">SALESMAN</th>
                                 <th class="sub-header">AMOUNT</th>
-                                <!-- KOTAK SWIPE Section -->
+                                <!-- SWIPE Section -->
                                 <th class="sub-header">SR.<br>NO.</th>
                                 <th class="sub-header">SALESMAN</th>
                                 <th class="sub-header">AMOUNT</th>
@@ -93,8 +92,6 @@
                                 <th class="sub-header">SALESMAN</th>
                                 <th class="sub-header">PARTY</th>
                                 <th class="sub-header">AMOUNT</th>
-                                <!-- Cash Section -->
-                                <th class="sub-header">Opening Cash</th>
                             </tr>
                         </thead>
                         <tbody id="grid-body">
@@ -145,8 +142,8 @@
                         <span class="calculated-field" id="debtors-total">0</span>
                     </div>
                     <div class="summary-item">
-                        <label>BHARATPE:</label>
-                        <input type="number" id="bharatpe" class="bharatpe-input" placeholder="0" step="0.01">
+                        <label>Total QR Sale:</label>
+                        <span class="calculated-field" id="total-qr-sale">0</span>
                     </div>
                     <div class="summary-item">
                         <label>Collection:</label>
@@ -696,7 +693,7 @@
     <script src="modules/calculations.js"></script>
     <script src="modules/modalHandlers.js"></script>
     <script src="modules/dayManagement.js"></script>
-    <script src="modules/reports.js"></script>
+    <script src="modules/reportsEnhanced.js"></script>
     <script src="modules/api.js"></script>
     <script src="modules/formulaEngine.js"></script>
     <script src="modules/persistence.js"></script>

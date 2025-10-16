@@ -84,10 +84,9 @@ OPENING
 
 SALES
   Total Sale:                   ₹${calculationsManager.getTotalSale().toFixed(2)}
-  Kotak QR:                     ₹${calculationsManager.getKotakQR().toFixed(2)}
-  Kotak Swipe:                  ₹${calculationsManager.getKotakSwipe().toFixed(2)}
+  QR:                           ₹${calculationsManager.getQR().toFixed(2)}
+  Swipe:                        ₹${calculationsManager.getSwipe().toFixed(2)}
   Debtors (Credit):             ₹${calculationsManager.getDebtors().toFixed(2)}
-  BharatPE:                     ₹${calculationsManager.getBharatPE().toFixed(2)}
 
 EXPENSES
   Total Expenses:               ₹${expensesManager.getTotalExpenses().toFixed(2)}

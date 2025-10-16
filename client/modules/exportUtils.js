@@ -128,16 +128,31 @@ class ExportUtils {
             const cellKey = input.dataset.cellKey;
             const section = input.dataset.section;
             const rowIndex = input.dataset.rowIndex;
+            const fieldType = input.dataset.fieldType;
             const value = input.value.trim();
             
             if (value) {
                 if (!data.entries[section]) {
                     data.entries[section] = {};
                 }
+                
+                // Get entry type and payment methods for POS entries
+                let entryType = '';
+                let paymentMethods = [];
+                
+                if (section === 'POS' && fieldType === 'AMOUNT' && uiManager.entryTypes[cellKey]) {
+                    const entryInfo = uiManager.entryTypes[cellKey];
+                    entryType = entryInfo.type || '';
+                    paymentMethods = entryInfo.paymentMethods || [];
+                }
+                
                 data.entries[section][`row_${rowIndex}`] = {
                     cellKey,
+                    fieldType,
                     value,
-                    calculatedValue: formulaEngine.getCalculatedValue(cellKey)
+                    calculatedValue: formulaEngine.getCalculatedValue(cellKey),
+                    entryType,
+                    paymentMethods
                 };
             }
         });
@@ -186,16 +201,23 @@ class ExportUtils {
         
         // Entries
         rows.push(['ENTRIES']);
-        rows.push(['Section', 'Row', 'Cell Key', 'Value', 'Calculated Value']);
+        rows.push(['Section', 'Row', 'Field', 'Cell Key', 'Value', 'Entry Type', 'Payment Method']);
         
         Object.entries(data.entries).forEach(([section, sectionData]) => {
             Object.entries(sectionData).forEach(([rowKey, entryData]) => {
+                // Format payment methods
+                const paymentMethods = entryData.paymentMethods && entryData.paymentMethods.length > 0
+                    ? entryData.paymentMethods.join(', ')
+                    : '';
+                
                 rows.push([
                     section,
                     rowKey.replace('row_', ''),
+                    entryData.fieldType || 'AMOUNT',
                     entryData.cellKey,
                     entryData.value,
-                    entryData.calculatedValue || ''
+                    entryData.entryType || '',
+                    paymentMethods
                 ]);
             });
         });
@@ -244,17 +266,24 @@ class ExportUtils {
         
         // Entries sheet
         const entriesData = [
-            ['Section', 'Row', 'Cell Key', 'Value', 'Calculated Value']
+            ['Section', 'Row', 'Field', 'Cell Key', 'Value', 'Entry Type', 'Payment Method']
         ];
         
         Object.entries(data.entries).forEach(([section, sectionData]) => {
             Object.entries(sectionData).forEach(([rowKey, entryData]) => {
+                // Format payment methods
+                const paymentMethods = entryData.paymentMethods && entryData.paymentMethods.length > 0
+                    ? entryData.paymentMethods.join(', ')
+                    : '';
+                
                 entriesData.push([
                     section,
                     rowKey.replace('row_', ''),
+                    entryData.fieldType || 'AMOUNT',
                     entryData.cellKey,
                     entryData.value,
-                    entryData.calculatedValue || ''
+                    entryData.entryType || '',
+                    paymentMethods
                 ]);
             });
         });
@@ -346,6 +375,32 @@ class ExportUtils {
             font-size: 12px;
             color: #666;
         }
+        .entry-type {
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+        .entry-type.sale {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .entry-type.return {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .entry-type.salesman {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        .entry-type.party {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        .payment-method {
+            font-size: 12px;
+            color: #059669;
+        }
     </style>
 </head>
 <body>
@@ -376,8 +431,10 @@ class ExportUtils {
             <tr>
                 <th>Section</th>
                 <th>Row</th>
+                <th>Field</th>
                 <th>Value</th>
-                <th>Calculated Value</th>
+                <th>Entry Type</th>
+                <th>Payment Method</th>
             </tr>
         </thead>
         <tbody>
@@ -415,12 +472,32 @@ class ExportUtils {
         
         Object.entries(entries).forEach(([section, sectionData]) => {
             Object.entries(sectionData).forEach(([rowKey, entryData]) => {
+                // Format payment methods
+                let paymentMethodHTML = '-';
+                if (entryData.paymentMethods && entryData.paymentMethods.length > 0) {
+                    const methods = entryData.paymentMethods.map(m => {
+                        if (m === 'cash') return '💵 Cash';
+                        if (m === 'online') return '💳 Online';
+                        return m;
+                    });
+                    paymentMethodHTML = `<span class="payment-method">${methods.join(', ')}</span>`;
+                }
+                
+                // Format entry type with styling
+                let entryTypeHTML = '-';
+                if (entryData.entryType) {
+                    const type = entryData.entryType.toLowerCase();
+                    entryTypeHTML = `<span class="entry-type ${type}">${entryData.entryType.toUpperCase()}</span>`;
+                }
+                
                 rows += `
                     <tr>
                         <td>${section}</td>
                         <td>${rowKey.replace('row_', '')}</td>
-                        <td>${entryData.value}</td>
-                        <td>${entryData.calculatedValue || ''}</td>
+                        <td>${entryData.fieldType || 'AMOUNT'}</td>
+                        <td><strong>${entryData.value}</strong></td>
+                        <td>${entryTypeHTML}</td>
+                        <td>${paymentMethodHTML}</td>
                     </tr>
                 `;
             });

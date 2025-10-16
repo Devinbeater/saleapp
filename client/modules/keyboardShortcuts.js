@@ -70,6 +70,74 @@ class KeyboardShortcuts {
         this.addShortcut(['shift+tab'], (event) => {
             this.handleShiftTab(event);
         });
+
+        // Excel-like shortcuts
+        // Copy (Ctrl+C)
+        this.addShortcut(['ctrl+c', 'meta+c'], (event) => {
+            this.copyCell(event);
+        });
+
+        // Cut (Ctrl+X)
+        this.addShortcut(['ctrl+x', 'meta+x'], (event) => {
+            this.cutCell(event);
+        });
+
+        // Paste (Ctrl+V)
+        this.addShortcut(['ctrl+v', 'meta+v'], (event) => {
+            this.pasteCell(event);
+        });
+
+        // Undo (Ctrl+Z)
+        this.addShortcut(['ctrl+z', 'meta+z'], (event) => {
+            this.undo(event);
+        });
+
+        // Redo (Ctrl+Y)
+        this.addShortcut(['ctrl+y', 'meta+y'], (event) => {
+            this.redo(event);
+        });
+
+        // Delete cell content (Delete key)
+        this.addShortcut(['delete'], (event) => {
+            this.deleteCellContent(event);
+        });
+
+        // F2 to edit cell
+        this.addShortcut(['f2'], (event) => {
+            this.editCell(event);
+        });
+
+        // Arrow keys navigation
+        this.addShortcut(['arrowup'], (event) => {
+            this.moveUp(event);
+        });
+
+        this.addShortcut(['arrowdown'], (event) => {
+            this.moveDown(event);
+        });
+
+        this.addShortcut(['arrowleft'], (event) => {
+            this.moveLeft(event);
+        });
+
+        this.addShortcut(['arrowright'], (event) => {
+            this.moveRight(event);
+        });
+
+        // Ctrl+Home (go to first cell)
+        this.addShortcut(['ctrl+home', 'meta+home'], (event) => {
+            this.goToFirstCell(event);
+        });
+
+        // Ctrl+End (go to last cell)
+        this.addShortcut(['ctrl+end', 'meta+end'], (event) => {
+            this.goToLastCell(event);
+        });
+
+        // Ctrl+A (select all)
+        this.addShortcut(['ctrl+a', 'meta+a'], (event) => {
+            this.selectAll(event);
+        });
     }
 
     /**
@@ -446,6 +514,166 @@ class KeyboardShortcuts {
         } else {
             document.removeEventListener('keydown', this.handleKeydown);
         }
+    }
+
+    // Excel-like functionality implementations
+    
+    /**
+     * Copy cell content
+     */
+    copyCell(event) {
+        if (!this.currentFocusedCell) return;
+        const value = this.currentFocusedCell.value;
+        navigator.clipboard.writeText(value).then(() => {
+            uiManager.showStatus('Copied to clipboard', 'success');
+        });
+    }
+
+    /**
+     * Cut cell content
+     */
+    cutCell(event) {
+        if (!this.currentFocusedCell) return;
+        const value = this.currentFocusedCell.value;
+        navigator.clipboard.writeText(value).then(() => {
+            this.currentFocusedCell.value = '';
+            this.currentFocusedCell.dispatchEvent(new Event('input'));
+            uiManager.showStatus('Cut to clipboard', 'success');
+        });
+    }
+
+    /**
+     * Paste cell content
+     */
+    pasteCell(event) {
+        if (!this.currentFocusedCell) return;
+        navigator.clipboard.readText().then(text => {
+            this.currentFocusedCell.value = text;
+            this.currentFocusedCell.dispatchEvent(new Event('input'));
+            uiManager.showStatus('Pasted from clipboard', 'success');
+        });
+    }
+
+    /**
+     * Undo (placeholder - would need undo/redo stack)
+     */
+    undo(event) {
+        uiManager.showStatus('Undo not yet implemented', 'warning');
+    }
+
+    /**
+     * Redo (placeholder - would need undo/redo stack)
+     */
+    redo(event) {
+        uiManager.showStatus('Redo not yet implemented', 'warning');
+    }
+
+    /**
+     * Delete cell content
+     */
+    deleteCellContent(event) {
+        if (!this.currentFocusedCell) return;
+        this.currentFocusedCell.value = '';
+        this.currentFocusedCell.dispatchEvent(new Event('input'));
+    }
+
+    /**
+     * Edit cell (F2)
+     */
+    editCell(event) {
+        if (!this.currentFocusedCell) {
+            const firstInput = document.querySelector('input[data-cell-key]');
+            if (firstInput) firstInput.focus();
+        } else {
+            this.currentFocusedCell.select();
+        }
+    }
+
+    /**
+     * Move up
+     */
+    moveUp(event) {
+        if (!this.currentFocusedCell) return;
+        event.preventDefault();
+        const currentRow = parseInt(this.currentFocusedCell.dataset.rowIndex);
+        if (currentRow > 0) {
+            const section = this.currentFocusedCell.dataset.section;
+            const fieldType = this.currentFocusedCell.dataset.fieldType;
+            const prevCell = document.querySelector(
+                `input[data-section="${section}"][data-row-index="${currentRow - 1}"][data-field-type="${fieldType}"]`
+            );
+            if (prevCell) prevCell.focus();
+        }
+    }
+
+    /**
+     * Move down
+     */
+    moveDown(event) {
+        if (!this.currentFocusedCell) return;
+        event.preventDefault();
+        const currentRow = parseInt(this.currentFocusedCell.dataset.rowIndex);
+        const section = this.currentFocusedCell.dataset.section;
+        const fieldType = this.currentFocusedCell.dataset.fieldType;
+        const nextCell = document.querySelector(
+            `input[data-section="${section}"][data-row-index="${currentRow + 1}"][data-field-type="${fieldType}"]`
+        );
+        if (nextCell) nextCell.focus();
+    }
+
+    /**
+     * Move left
+     */
+    moveLeft(event) {
+        if (!this.currentFocusedCell) return;
+        event.preventDefault();
+        const allInputs = Array.from(document.querySelectorAll('input[data-cell-key]'));
+        const currentIndex = allInputs.indexOf(this.currentFocusedCell);
+        if (currentIndex > 0) {
+            allInputs[currentIndex - 1].focus();
+        }
+    }
+
+    /**
+     * Move right
+     */
+    moveRight(event) {
+        if (!this.currentFocusedCell) return;
+        event.preventDefault();
+        const allInputs = Array.from(document.querySelectorAll('input[data-cell-key]'));
+        const currentIndex = allInputs.indexOf(this.currentFocusedCell);
+        if (currentIndex < allInputs.length - 1) {
+            allInputs[currentIndex + 1].focus();
+        }
+    }
+
+    /**
+     * Go to first cell
+     */
+    goToFirstCell(event) {
+        event.preventDefault();
+        const firstInput = document.querySelector('input[data-cell-key]');
+        if (firstInput) firstInput.focus();
+    }
+
+    /**
+     * Go to last cell
+     */
+    goToLastCell(event) {
+        event.preventDefault();
+        const allInputs = document.querySelectorAll('input[data-cell-key]');
+        if (allInputs.length > 0) {
+            allInputs[allInputs.length - 1].focus();
+        }
+    }
+
+    /**
+     * Select all (select all text in current cell)
+     */
+    selectAll(event) {
+        if (!this.currentFocusedCell) return;
+        event.preventDefault();
+        this.currentFocusedCell.select();
     }
 }
 

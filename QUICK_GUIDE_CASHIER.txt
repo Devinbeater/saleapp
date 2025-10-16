@@ -1,0 +1,198 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║              🧾 CASHIER SHEET - QUICK GUIDE                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ NEW FEATURES ADDED                                                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+✅ Spiritual Header: "!! Shree Ganeshay Namha !!"
+✅ Opening Cash Input
+✅ POS Entry Type Modal (Sale/Return/Salesman/Party)
+✅ Entry Type Badges
+✅ Total Sale Calculation
+✅ Debit Cash Calculation
+✅ BharatPE Input
+✅ Collection Calculation
+✅ Difference Calculation (Highlighted in Red)
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ HOW TO USE                                                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+STEP 1: Enter Opening Cash
+   → Look at sidebar → "Opening Cash" field
+   → Enter starting cash amount (e.g., 5000)
+
+STEP 2: Enter POS Transactions
+   → Click any POS cell
+   → Type amount (e.g., 500)
+   → 🎉 MODAL APPEARS automatically!
+   → Select entry type:
+      • Sale 🛒 (regular transaction)
+      • Return ↩️ (refund)
+      • Salesman 👔 (collection)
+      • Party 🤝 (payment)
+   → Click "Confirm"
+   → Badge appears on cell!
+
+STEP 3: Enter Other Payments
+   → Kotak QR column: Enter QR payments
+   → Kotak Swipe column: Enter card payments
+   → Debtors column: Enter credit sales
+   → BharatPE field (sidebar): Enter BharatPE amount
+
+STEP 4: Count Denominations
+   → At end of day, count cash
+   → Enter pieces for each denomination
+   → Total calculates automatically
+
+STEP 5: Check Reconciliation
+   → Look at "Difference" field
+   → Should show ₹0.00 ✅
+   → If not zero, recount!
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ CALCULATIONS EXPLAINED                                                       │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Total Sale = Sum of all POS entries
+   Example: 500 + 300 + 200 = ₹1,000
+
+Debit Cash = Opening Cash + Total Sale
+   Example: 5,000 + 1,000 = ₹6,000
+
+Net Amount = Debit Cash - (KQR + KSW + Debtors + BharatPE)
+   Example: 6,000 - (200 + 300 + 100 + 50) = ₹5,350
+
+Collection = Denominations + KQR + KSW + Debtors + BharatPE
+   Example: 5,350 + 200 + 300 + 100 + 50 = ₹6,000
+
+Difference = Debit Cash - Collection
+   Example: 6,000 - 6,000 = ₹0.00 ✅ PERFECT!
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ENTRY TYPE BADGES                                                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+After selecting entry type, you'll see a colored badge:
+
+🟢 SALE     - Green badge (regular sales)
+🔴 RETURN   - Red badge (refunds)
+🔵 SALESMAN - Blue badge (collections)
+🟠 PARTY    - Orange badge (payments)
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ SIDEBAR LAYOUT                                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+REPORT & ACTIONS
+├─ Cash Summary
+│  ├─ Opening Cash: [5000]        ← YOU ENTER
+│  ├─ TOTAL SALE: ₹1,000.00       ← AUTO
+│  ├─ Debit Cash: ₹6,000.00       ← AUTO
+│  ├─ NET AMOUNT: ₹5,350.00       ← AUTO
+│  ├─ SWIPE: ₹300.00              ← AUTO
+│  ├─ DEBTORS: ₹100.00            ← AUTO
+│  ├─ BHARATPE: [50]              ← YOU ENTER
+│  ├─ Collection: ₹6,000.00       ← AUTO
+│  └─ Difference: ₹0.00 🔴        ← AUTO (RED IF NOT ZERO)
+│
+├─ Denominations
+│  └─ [Enter pieces for each denomination]
+│
+└─ Actions
+   └─ [Save, Export, etc.]
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ RECONCILIATION TIPS                                                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+✅ DO:
+   • Enter accurate Opening Cash
+   • Select correct entry type for each POS transaction
+   • Count denominations carefully
+   • Enter all digital payments
+   • Check Difference = ₹0.00
+
+❌ DON'T:
+   • Skip entry type selection
+   • Forget to enter BharatPE
+   • Miss any denominations
+   • Ignore red Difference warning
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TROUBLESHOOTING                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Problem: Modal doesn't appear
+Solution: Make sure you're typing in POS column (first column)
+
+Problem: Difference is not zero
+Solution: 
+   • Recount cash denominations
+   • Check all digital payment entries
+   • Verify Opening Cash is correct
+   • Check for missed POS entries
+
+Problem: Calculations not updating
+Solution: 
+   • Make sure you entered values correctly
+   • Check browser console for errors
+   • Refresh page and try again
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ EXAMPLE WORKFLOW                                                             │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+9:00 AM - Start of Day
+   → Enter Opening Cash: ₹5,000
+
+10:00 AM - First Sale
+   → POS cell: Type "500"
+   → Modal: Select "Sale"
+   → Badge shows: SALE
+
+12:00 PM - Customer Return
+   → POS cell: Type "100"
+   → Modal: Select "Return"
+   → Badge shows: RETURN
+
+3:00 PM - Salesman Collection
+   → POS cell: Type "2000"
+   → Modal: Select "Salesman"
+   → Badge shows: SALESMAN
+
+6:00 PM - Digital Payments
+   → Kotak QR: ₹500
+   → Kotak Swipe: ₹800
+   → BharatPE: ₹200
+
+9:00 PM - End of Day
+   → Count cash → Enter denominations
+   → Check Difference: ₹0.00 ✅
+   → Click "Save"
+   → Done!
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          🎉 YOU'RE READY!                                    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Start the server:
+   cd server
+   npm start
+
+Open browser:
+   http://localhost:3000
+
+For detailed information, see: CASHIER_SHEET_FEATURES.md
+
+═══════════════════════════════════════════════════════════════════════════════

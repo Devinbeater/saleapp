@@ -3,8 +3,25 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
+const db = require('./config/database');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Initialize database on startup
+(async () => {
+    try {
+        const connected = await db.testConnection();
+        if (connected) {
+            await db.initializeTables();
+            console.log('✅ Database ready');
+        } else {
+            console.error('❌ Database connection failed - server will continue but database features may not work');
+        }
+    } catch (error) {
+        console.error('❌ Database initialization error:', error.message);
+    }
+})();
 
 // Middleware
 app.use(cors());

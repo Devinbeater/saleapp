@@ -28,6 +28,13 @@ class UIManager {
             KSW: [],
             DEBTOR: []
         };
+        // Track entry types for POS entries
+        this.entryTypes = {};
+        // Track current POS input being edited
+        this.currentPOSInput = null;
+        // Opening cash and other values
+        this.openingCash = 0;
+        this.bharatpe = 0;
         this.initializeEventListeners();
     }
 
@@ -112,12 +119,100 @@ class UIManager {
                 }
             });
         }
+
+        // POS Entry Modal
+        const closePOSModalBtn = document.getElementById('close-pos-modal');
+        const cancelPOSBtn = document.getElementById('cancel-pos-entry');
+        const confirmPOSBtn = document.getElementById('confirm-pos-entry');
+        const posModal = document.getElementById('pos-entry-modal');
+
+        if (closePOSModalBtn) {
+            closePOSModalBtn.addEventListener('click', () => {
+                this.closePOSModal();
+            });
+        }
+
+        if (cancelPOSBtn) {
+            cancelPOSBtn.addEventListener('click', () => {
+                this.closePOSModal();
+            });
+        }
+
+        if (confirmPOSBtn) {
+            confirmPOSBtn.addEventListener('click', () => {
+                this.confirmPOSEntry();
+            });
+        }
+
+        if (posModal) {
+            posModal.addEventListener('click', (event) => {
+                if (event.target === posModal) {
+                    this.closePOSModal();
+                }
+            });
+        }
+
+        // Opening Cash and BharatPE inputs
+        const openingCashInput = document.getElementById('opening-cash');
+        const bharatpeInput = document.getElementById('bharatpe');
+
+        if (openingCashInput) {
+            openingCashInput.addEventListener('input', () => {
+                this.openingCash = parseFloat(openingCashInput.value) || 0;
+                this.updateCalculations();
+            });
+        }
+
+        if (bharatpeInput) {
+            bharatpeInput.addEventListener('input', () => {
+                this.bharatpe = parseFloat(bharatpeInput.value) || 0;
+                this.updateCalculations();
+                
+                // Update modal handlers if available
+                if (typeof modalHandlers !== 'undefined') {
+                    modalHandlers.updateExpensesSummary();
+                }
+            });
+        }
+
+        // Window control buttons
+        const minimizeBtn = document.getElementById('minimize-btn');
+        const maximizeBtn = document.getElementById('maximize-btn');
+        const closeBtn = document.getElementById('close-btn');
+
+        if (minimizeBtn) {
+            minimizeBtn.addEventListener('click', () => {
+                this.minimizeWindow();
+            });
+        }
+
+        if (maximizeBtn) {
+            maximizeBtn.addEventListener('click', () => {
+                this.toggleMaximize();
+            });
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                this.closeWindow();
+            });
+        }
     }
 
     /**
      * Initialize the UI with current date
      */
     async initialize() {
+        // Load saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeLabel = document.getElementById('theme-label');
+            if (themeToggle) themeToggle.checked = true;
+            if (themeLabel) themeLabel.textContent = 'Dark Mode';
+        }
+        
         // Set current date
         const sheetDateInput = document.getElementById('sheet-date');
         if (sheetDateInput) {
@@ -166,54 +261,135 @@ class UIManager {
         const gridBody = document.getElementById('grid-body');
         if (!gridBody) return;
 
-        // Clear existing data rows (keep total rows)
-        const dataRows = gridBody.querySelectorAll('.grid-row:not(.total-row)');
-        dataRows.forEach(row => row.remove());
+        // Clear existing data rows
+        gridBody.innerHTML = '';
 
-        const sections = ['POS', 'KQR', 'KSW', 'DEBTOR'];
-        const maxRows = Math.max(...sections.map(s => this.sheetData[s].length));
+        // Calculate max rows needed (50 rows to cover all 4 POS sections)
+        const maxRows = 50;
         
         for (let row = 0; row < maxRows; row++) {
             const tr = document.createElement('tr');
             tr.className = 'grid-row';
             tr.dataset.rowIndex = row;
 
-            sections.forEach(section => {
-                const td = document.createElement('td');
-                td.className = 'grid-cell';
+            // POS Section: 4 groups (1-50, 51-100, 101-150, 151-200)
+            for (let group = 0; group < 4; group++) {
+                const srNo = row + 1 + (group * 50);
                 
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'cell-input';
-                input.dataset.cellKey = `${section}_AMOUNT_${row}`;
-                input.dataset.section = section;
-                input.dataset.rowIndex = row;
-                input.placeholder = '0';
-                input.value = this.sheetData[section][row]?.value || '';
+                // SR.NO cell (read-only)
+                const srCell = document.createElement('td');
+                srCell.className = 'grid-cell sr-no-cell';
+                srCell.textContent = srNo;
+                tr.appendChild(srCell);
                 
-                // Add event listeners
-                input.addEventListener('input', (event) => {
-                    this.handleCellInput(event);
-                });
-                
-                input.addEventListener('blur', (event) => {
-                    this.handleCellBlur(event);
-                });
-                
-                input.addEventListener('keydown', (event) => {
-                    this.handleCellKeydown(event);
-                });
+                // AMOUNT cell
+                const amountCell = document.createElement('td');
+                amountCell.className = 'grid-cell';
+                const amountInput = this.createInput('POS', row + (group * 50), 'AMOUNT');
+                amountCell.appendChild(amountInput);
+                tr.appendChild(amountCell);
+            }
 
-                input.addEventListener('focus', (event) => {
-                    this.handleCellFocus(event);
-                });
+            // KOTAK QR Section (SR.NO, SALESMAN, AMOUNT)
+            const kqrSrCell = document.createElement('td');
+            kqrSrCell.className = 'grid-cell sr-no-cell';
+            kqrSrCell.textContent = row + 1;
+            tr.appendChild(kqrSrCell);
+            
+            const kqrSalesmanCell = document.createElement('td');
+            kqrSalesmanCell.className = 'grid-cell';
+            const kqrSalesmanInput = this.createInput('KQR', row, 'SALESMAN');
+            kqrSalesmanCell.appendChild(kqrSalesmanInput);
+            tr.appendChild(kqrSalesmanCell);
+            
+            const kqrAmountCell = document.createElement('td');
+            kqrAmountCell.className = 'grid-cell';
+            const kqrAmountInput = this.createInput('KQR', row, 'AMOUNT');
+            kqrAmountCell.appendChild(kqrAmountInput);
+            tr.appendChild(kqrAmountCell);
 
-                td.appendChild(input);
-                tr.appendChild(td);
-            });
+            // KOTAK SWIPE Section (SR.NO, SALESMAN, AMOUNT)
+            const kswSrCell = document.createElement('td');
+            kswSrCell.className = 'grid-cell sr-no-cell';
+            kswSrCell.textContent = row + 1;
+            tr.appendChild(kswSrCell);
+            
+            const kswSalesmanCell = document.createElement('td');
+            kswSalesmanCell.className = 'grid-cell';
+            const kswSalesmanInput = this.createInput('KSW', row, 'SALESMAN');
+            kswSalesmanCell.appendChild(kswSalesmanInput);
+            tr.appendChild(kswSalesmanCell);
+            
+            const kswAmountCell = document.createElement('td');
+            kswAmountCell.className = 'grid-cell';
+            const kswAmountInput = this.createInput('KSW', row, 'AMOUNT');
+            kswAmountCell.appendChild(kswAmountInput);
+            tr.appendChild(kswAmountCell);
+
+            // DEBTORS Section (SR.NO, SALESMAN, PARTY, AMOUNT)
+            const debtorSrCell = document.createElement('td');
+            debtorSrCell.className = 'grid-cell sr-no-cell';
+            debtorSrCell.textContent = row + 1;
+            tr.appendChild(debtorSrCell);
+            
+            const debtorSalesmanCell = document.createElement('td');
+            debtorSalesmanCell.className = 'grid-cell';
+            const debtorSalesmanInput = this.createInput('DEBTOR', row, 'SALESMAN');
+            debtorSalesmanCell.appendChild(debtorSalesmanInput);
+            tr.appendChild(debtorSalesmanCell);
+            
+            const debtorPartyCell = document.createElement('td');
+            debtorPartyCell.className = 'grid-cell';
+            const debtorPartyInput = this.createInput('DEBTOR', row, 'PARTY');
+            debtorPartyCell.appendChild(debtorPartyInput);
+            tr.appendChild(debtorPartyCell);
+            
+            const debtorAmountCell = document.createElement('td');
+            debtorAmountCell.className = 'grid-cell';
+            const debtorAmountInput = this.createInput('DEBTOR', row, 'AMOUNT');
+            debtorAmountCell.appendChild(debtorAmountInput);
+            tr.appendChild(debtorAmountCell);
 
             gridBody.appendChild(tr);
         }
+    }
+
+    /**
+     * Create an input element with event listeners
+     */
+    createInput(section, rowIndex, fieldType) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'cell-input';
+        input.dataset.cellKey = `${section}_${fieldType}_${rowIndex}`;
+        input.dataset.section = section;
+        input.dataset.rowIndex = rowIndex;
+        input.dataset.fieldType = fieldType;
+        input.placeholder = fieldType === 'AMOUNT' ? '0' : '';
+        
+        // Get value from sheetData if exists
+        if (this.sheetData[section] && this.sheetData[section][rowIndex]) {
+            input.value = this.sheetData[section][rowIndex][fieldType.toLowerCase()] || '';
+        }
+        
+        // Add event listeners
+        input.addEventListener('input', (event) => {
+            this.handleCellInput(event);
+        });
+        
+        input.addEventListener('blur', (event) => {
+            this.handleCellBlur(event);
+        });
+        
+        input.addEventListener('keydown', (event) => {
+            this.handleCellKeydown(event);
+        });
+
+        input.addEventListener('focus', (event) => {
+            this.handleCellFocus(event);
+        });
+
+        return input;
     }
 
     /**
@@ -294,6 +470,57 @@ class UIManager {
 
             denominationsBody.appendChild(tr);
         });
+
+        // Generate return table
+        this.generateReturnTable();
+    }
+
+    /**
+     * Generate return table
+     */
+    generateReturnTable() {
+        const returnBody = document.getElementById('return-body');
+        if (!returnBody) return;
+
+        returnBody.innerHTML = '';
+
+        // Create 5 return rows
+        for (let i = 0; i < 5; i++) {
+            const tr = document.createElement('tr');
+
+            // SR. NO.
+            const srTd = document.createElement('td');
+            const srInput = document.createElement('input');
+            srInput.type = 'text';
+            srInput.dataset.returnField = 'srno';
+            srInput.dataset.returnIndex = i;
+            srTd.appendChild(srInput);
+            tr.appendChild(srTd);
+
+            // SALESMAN
+            const salesmanTd = document.createElement('td');
+            const salesmanInput = document.createElement('input');
+            salesmanInput.type = 'text';
+            salesmanInput.dataset.returnField = 'salesman';
+            salesmanInput.dataset.returnIndex = i;
+            salesmanTd.appendChild(salesmanInput);
+            tr.appendChild(salesmanTd);
+
+            // AMOUNT
+            const amountTd = document.createElement('td');
+            const amountInput = document.createElement('input');
+            amountInput.type = 'number';
+            amountInput.step = '0.01';
+            amountInput.dataset.returnField = 'amount';
+            amountInput.dataset.returnIndex = i;
+            amountInput.addEventListener('input', () => {
+                this.updateCalculations();
+            });
+            amountTd.appendChild(amountInput);
+            tr.appendChild(amountTd);
+
+            returnBody.appendChild(tr);
+        }
     }
 
     /**
@@ -305,6 +532,13 @@ class UIManager {
         const rowIndex = parseInt(input.dataset.rowIndex);
         const value = input.value;
 
+        // Show POS entry modal for POS section when user starts typing
+        if (section === 'POS' && value && !this.entryTypes[input.dataset.cellKey]) {
+            this.currentPOSInput = input;
+            this.showPOSModal();
+            return;
+        }
+
         // Update sheet data
         if (!this.sheetData[section][rowIndex]) {
             this.sheetData[section][rowIndex] = { value: '' };
@@ -313,6 +547,9 @@ class UIManager {
 
         // Check if we need to expand rows
         this.checkAndExpandRows(section);
+        
+        // Update calculations
+        this.updateCalculations();
     }
 
     /**
@@ -554,6 +791,12 @@ class UIManager {
         document.body.classList.toggle('dark-theme');
         const isDark = document.body.classList.contains('dark-theme');
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        
+        // Update theme label
+        const themeLabel = document.getElementById('theme-label');
+        if (themeLabel) {
+            themeLabel.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+        }
     }
 
     /**
@@ -855,6 +1098,266 @@ class UIManager {
             this.sheetData[section] = Array.from({ length: this.gridRows }, () => ({ value: '' }));
         });
         this.renderAllRows();
+    }
+
+    /**
+     * Show POS Entry Modal
+     */
+    showPOSModal() {
+        const modal = document.getElementById('pos-entry-modal');
+        if (modal) {
+            modal.classList.add('show');
+            // Reset to default selection
+            const saleRadio = document.querySelector('input[name="pos-entry-type"][value="sale"]');
+            if (saleRadio) {
+                saleRadio.checked = true;
+            }
+        }
+    }
+
+    /**
+     * Close POS Entry Modal
+     */
+    closePOSModal() {
+        const modal = document.getElementById('pos-entry-modal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+        // Clear the current input if user cancels
+        if (this.currentPOSInput) {
+            this.currentPOSInput.value = '';
+            this.currentPOSInput = null;
+        }
+    }
+
+    /**
+     * Confirm POS Entry
+     */
+    confirmPOSEntry() {
+        if (!this.currentPOSInput) return;
+
+        // Get selected entry type (radio button)
+        const selectedType = document.querySelector('input[name="pos-entry-type"]:checked');
+        
+        // Get selected payment methods (checkboxes)
+        const paymentMethods = [];
+        document.querySelectorAll('input[name="payment-method"]:checked').forEach(checkbox => {
+            paymentMethods.push(checkbox.value);
+        });
+        
+        if (selectedType && paymentMethods.length > 0) {
+            const entryType = selectedType.value;
+            const cellKey = this.currentPOSInput.dataset.cellKey;
+            
+            // Store entry type and payment methods
+            this.entryTypes[cellKey] = {
+                type: entryType,
+                paymentMethods: paymentMethods
+            };
+            
+            // Add badges to input
+            this.addEntryBadges(this.currentPOSInput, entryType, paymentMethods);
+            
+            // Update sheet data
+            const section = this.currentPOSInput.dataset.section;
+            const rowIndex = parseInt(this.currentPOSInput.dataset.rowIndex);
+            const value = this.currentPOSInput.value;
+            
+            if (!this.sheetData[section][rowIndex]) {
+                this.sheetData[section][rowIndex] = { 
+                    value: '', 
+                    entryType: entryType,
+                    paymentMethods: paymentMethods 
+                };
+            } else {
+                this.sheetData[section][rowIndex].entryType = entryType;
+                this.sheetData[section][rowIndex].paymentMethods = paymentMethods;
+            }
+            this.sheetData[section][rowIndex].value = value;
+            
+            // Check if we need to expand rows
+            this.checkAndExpandRows(section);
+            
+            // Update calculations
+            this.updateCalculations();
+        } else {
+            alert('Please select at least one payment method');
+            return;
+        }
+        
+        // Close modal
+        this.closePOSModal();
+        this.currentPOSInput = null;
+    }
+
+    /**
+     * Add entry type badges to input
+     */
+    addEntryBadges(input, entryType, paymentMethods) {
+        // Remove existing badges if any
+        const existingBadges = input.parentElement.querySelectorAll('.entry-badge');
+        existingBadges.forEach(badge => badge.remove());
+        
+        // Make parent relative if not already
+        input.parentElement.style.position = 'relative';
+        
+        // Create badge container
+        const badgeContainer = document.createElement('div');
+        badgeContainer.className = 'badge-container';
+        badgeContainer.style.position = 'absolute';
+        badgeContainer.style.top = '2px';
+        badgeContainer.style.right = '2px';
+        badgeContainer.style.display = 'flex';
+        badgeContainer.style.gap = '4px';
+        badgeContainer.style.pointerEvents = 'none';
+        
+        // Create entry type badge
+        const typeBadge = document.createElement('span');
+        typeBadge.className = `entry-badge ${entryType}`;
+        typeBadge.textContent = entryType.toUpperCase();
+        badgeContainer.appendChild(typeBadge);
+        
+        // Create payment method badges
+        paymentMethods.forEach(method => {
+            const methodBadge = document.createElement('span');
+            methodBadge.className = `entry-badge payment-${method}`;
+            methodBadge.textContent = method === 'cash' ? '💵' : '💳';
+            methodBadge.title = method.toUpperCase();
+            badgeContainer.appendChild(methodBadge);
+        });
+        
+        input.parentElement.appendChild(badgeContainer);
+    }
+
+    /**
+     * Update all calculations
+     */
+    updateCalculations() {
+        // Use the new calculations manager if available
+        if (typeof calculationsManager !== 'undefined') {
+            calculationsManager.updateAllDisplays();
+        } else {
+            // Fallback to old calculation method
+            const posTotal = this.calculateSectionTotal('POS');
+            const kqrTotal = this.calculateSectionTotal('KQR');
+            const kswTotal = this.calculateSectionTotal('KSW');
+            const debtorTotal = this.calculateSectionTotal('DEBTOR');
+            
+            const totalSale = posTotal;
+            const debitCash = this.openingCash + totalSale;
+            const denominationsTotal = this.calculateDenominationsTotal();
+            const netAmount = debitCash - (kqrTotal + kswTotal + debtorTotal + this.bharatpe);
+            const collection = denominationsTotal + kqrTotal + kswTotal + debtorTotal + this.bharatpe;
+            const difference = debitCash - collection;
+            
+            this.updateElement('total-sale', this.formatCurrency(totalSale));
+            this.updateElement('debit-cash', this.formatCurrency(debitCash));
+            this.updateElement('net-amount', this.formatCurrency(netAmount));
+            this.updateElement('swipe-total', this.formatCurrency(kswTotal));
+            this.updateElement('debtors-total', this.formatCurrency(debtorTotal));
+            this.updateElement('collection-total', this.formatCurrency(collection));
+            this.updateElement('difference', this.formatCurrency(difference));
+        }
+    }
+
+    /**
+     * Calculate total for a section
+     */
+    calculateSectionTotal(section) {
+        let total = 0;
+        if (this.sheetData[section]) {
+            this.sheetData[section].forEach(row => {
+                const value = parseFloat(row.value) || 0;
+                total += value;
+            });
+        }
+        return total;
+    }
+
+    /**
+     * Calculate denominations total
+     */
+    calculateDenominationsTotal() {
+        let total = 0;
+        this.denominations.forEach(denom => {
+            const piecesInput = document.querySelector(`input[data-denom="${denom.value}"]`);
+            if (piecesInput) {
+                const pieces = parseInt(piecesInput.value) || 0;
+                total += pieces * denom.value;
+            }
+        });
+        return total;
+    }
+
+    /**
+     * Update element text content
+     */
+    updateElement(id, value) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value;
+        }
+    }
+
+    /**
+     * Format currency
+     */
+    formatCurrency(value) {
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2
+        }).format(value);
+    }
+
+    /**
+     * Minimize window
+     */
+    minimizeWindow() {
+        // In a web app, we can simulate minimize by hiding the main content
+        const mainContainer = document.querySelector('.main-container');
+        if (mainContainer) {
+            mainContainer.style.display = 'none';
+            this.showStatus('Window minimized (click maximize to restore)', 'info');
+        }
+    }
+
+    /**
+     * Toggle maximize window
+     */
+    toggleMaximize() {
+        const body = document.body;
+        const mainContainer = document.querySelector('.main-container');
+        
+        if (mainContainer) {
+            mainContainer.style.display = 'flex';
+        }
+        
+        if (body.classList.contains('maximized')) {
+            body.classList.remove('maximized');
+            body.style.width = '';
+            body.style.height = '';
+            this.showStatus('Window restored', 'info');
+        } else {
+            body.classList.add('maximized');
+            body.style.width = '100vw';
+            body.style.height = '100vh';
+            this.showStatus('Window maximized', 'info');
+        }
+    }
+
+    /**
+     * Close window
+     */
+    closeWindow() {
+        if (confirm('Are you sure you want to close? Any unsaved changes will be lost.')) {
+            // In a web app, we can redirect or close the tab
+            window.close();
+            // If window.close() doesn't work (some browsers block it), show a message
+            setTimeout(() => {
+                this.showStatus('Please close the browser tab manually', 'warning');
+            }, 100);
+        }
     }
 }
 

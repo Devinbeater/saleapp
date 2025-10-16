@@ -7,11 +7,16 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="dark-theme">
+<body>
     <!-- Header Section -->
     <header class="header">
         <div class="header-content">
-            <h1 class="app-title">DAILY REGISTER</h1>
+            <div class="spiritual-header">
+                <h2>!! Shree Ganeshay Namha !!</h2>
+            </div>
+            <h1 class="app-title">
+                <i class="fas fa-file-excel"></i> DAILY REGISTER
+            </h1>
             <div class="date-display">
                 <input type="date" id="sheet-date" class="date-input">
             </div>
@@ -20,7 +25,7 @@
                     <input type="checkbox" id="theme-toggle">
                     <span class="slider"></span>
                 </label>
-                <span class="toggle-label">Dark Mode</span>
+                <span class="toggle-label" id="theme-label">Light Mode</span>
             </div>
         </div>
     </header>
@@ -44,13 +49,52 @@
 
                 <!-- Spreadsheet Grid -->
                 <div class="spreadsheet-container">
+                    <!-- Window Controls -->
+                    <div class="window-controls-sheet">
+                        <button class="window-btn minimize-btn" id="minimize-btn" title="Minimize">
+                            <i class="fas fa-window-minimize"></i>
+                        </button>
+                        <button class="window-btn maximize-btn" id="maximize-btn" title="Maximize">
+                            <i class="fas fa-window-maximize"></i>
+                        </button>
+                        <button class="window-btn close-btn" id="close-btn" title="Close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                     <table class="spreadsheet-grid" id="main-grid">
                         <thead>
-                            <tr class="header-row">
-                                <th class="section-header pos-col">POS (POINT OF SALE)</th>
-                                <th class="section-header kqr-col">KOTAK QR</th>
-                                <th class="section-header ksw-col">KOTAK SWIPE</th>
-                                <th class="section-header debtor-col">DEBTORS</th>
+                            <tr class="main-header-row">
+                                <th colspan="8" class="main-section-header pos-header">POS</th>
+                                <th colspan="3" class="main-section-header kqr-header">KOTAK QR</th>
+                                <th colspan="3" class="main-section-header ksw-header">KOTAK SWIPE</th>
+                                <th colspan="4" class="main-section-header debtor-header">DEBTORS</th>
+                                <th colspan="1" class="main-section-header cash-header">Cash</th>
+                            </tr>
+                            <tr class="sub-header-row">
+                                <!-- POS Section: 4 groups of SR.NO + AMOUNT -->
+                                <th class="sub-header">SR.<br>NO.</th>
+                                <th class="sub-header">AMOUNT</th>
+                                <th class="sub-header">SR.<br>NO.</th>
+                                <th class="sub-header">AMOUNT</th>
+                                <th class="sub-header">SR.<br>NO.</th>
+                                <th class="sub-header">AMOUNT</th>
+                                <th class="sub-header">SR.<br>NO.</th>
+                                <th class="sub-header">AMOUNT</th>
+                                <!-- KOTAK QR Section -->
+                                <th class="sub-header">SR.<br>NO.</th>
+                                <th class="sub-header">SALESMAN</th>
+                                <th class="sub-header">AMOUNT</th>
+                                <!-- KOTAK SWIPE Section -->
+                                <th class="sub-header">SR.<br>NO.</th>
+                                <th class="sub-header">SALESMAN</th>
+                                <th class="sub-header">AMOUNT</th>
+                                <!-- DEBTORS Section -->
+                                <th class="sub-header">SR.<br>NO.</th>
+                                <th class="sub-header">SALESMAN</th>
+                                <th class="sub-header">PARTY</th>
+                                <th class="sub-header">AMOUNT</th>
+                                <!-- Cash Section -->
+                                <th class="sub-header">Opening Cash</th>
                             </tr>
                         </thead>
                         <tbody id="grid-body">
@@ -77,12 +121,98 @@
                 <div class="cash-summary">
                     <h4>Cash Summary</h4>
                     <div class="summary-item">
+                        <label>Opening Cash:</label>
+                        <input type="number" id="opening-cash" class="opening-cash-input" placeholder="0" step="0.01">
+                    </div>
+                    <div class="summary-item">
                         <label>TOTAL SALE:</label>
                         <span class="calculated-field" id="total-sale">0</span>
                     </div>
                     <div class="summary-item">
+                        <label>Debit Cash:</label>
+                        <span class="calculated-field" id="debit-cash">0</span>
+                    </div>
+                    <div class="summary-item">
                         <label>NET AMOUNT:</label>
                         <span class="calculated-field" id="net-amount">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <label>SWIPE:</label>
+                        <span class="calculated-field" id="swipe-total">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <label>DEBTORS:</label>
+                        <span class="calculated-field" id="debtors-total">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <label>BHARATPE:</label>
+                        <input type="number" id="bharatpe" class="bharatpe-input" placeholder="0" step="0.01">
+                    </div>
+                    <div class="summary-item">
+                        <label>Collection:</label>
+                        <span class="calculated-field" id="collection-total">0</span>
+                    </div>
+                    <div class="summary-item highlight">
+                        <label>Difference:</label>
+                        <span class="calculated-field" id="difference">0</span>
+                    </div>
+                </div>
+
+                <!-- Debtors Management -->
+                <div class="debtors-section">
+                    <h4>Debtors Management</h4>
+                    <div class="debtors-controls">
+                        <button class="btn btn-secondary btn-sm" id="add-debtor-btn">
+                            <i class="fas fa-plus"></i> Add Debtor
+                        </button>
+                        <button class="btn btn-secondary btn-sm" id="view-all-debtors-btn">
+                            <i class="fas fa-list"></i> View All
+                        </button>
+                    </div>
+                    <div class="debtors-summary">
+                        <div class="summary-row">
+                            <span>Pending:</span>
+                            <span id="pending-debtors-count" class="count-badge">0</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Total Amount:</span>
+                            <span id="pending-debtors-amount" class="amount-display">₹0.00</span>
+                        </div>
+                    </div>
+                    <div class="debtors-list" id="debtors-list">
+                        <!-- Dynamic debtor entries -->
+                    </div>
+                </div>
+
+                <!-- Collections -->
+                <div class="collections-section">
+                    <h4>Collections</h4>
+                    <button class="btn btn-secondary btn-sm" id="record-collection-btn">
+                        <i class="fas fa-money-bill-wave"></i> Record Collection
+                    </button>
+                    <div class="collections-list" id="collections-list">
+                        <!-- Dynamic collection entries -->
+                    </div>
+                </div>
+
+                <!-- Expenses (Debit Cash) -->
+                <div class="expenses-section">
+                    <h4>Expenses (Debit Cash)</h4>
+                    <button class="btn btn-secondary btn-sm" id="add-expense-btn">
+                        <i class="fas fa-minus-circle"></i> Add Expense
+                    </button>
+                    <div class="expenses-summary">
+                        <div class="summary-row">
+                            <span>Total Expenses:</span>
+                            <span id="total-expenses-display" class="amount-display">₹0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Available Cash:</span>
+                            <span id="available-cash-display" class="amount-display">₹0.00</span>
+                        </div>
+                    </div>
+                    <div class="expenses-list" id="expenses-list">
+                        <!-- Dynamic expense entries -->
                     </div>
                 </div>
 
@@ -93,7 +223,7 @@
                         <thead>
                             <tr>
                                 <th>Denom</th>
-                                <th>Pieces</th>
+                                <th>No. of Pcs</th>
                                 <th>Amount</th>
                             </tr>
                         </thead>
@@ -102,8 +232,41 @@
                         </tbody>
                     </table>
                     <div class="denomination-total">
-                        <label>Total Cash:</label>
+                        <label>Total:</label>
                         <span id="total-cash">0</span>
+                    </div>
+                </div>
+
+                <!-- Return Section -->
+                <div class="return-section">
+                    <h4>Return</h4>
+                    <table class="return-table">
+                        <thead>
+                            <tr>
+                                <th>SR. NO.</th>
+                                <th>SALESMAN</th>
+                                <th>AMOUNT</th>
+                            </tr>
+                        </thead>
+                        <tbody id="return-body">
+                            <!-- Dynamic return rows -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Day Management -->
+                <div class="day-management-section">
+                    <h4>Day Management</h4>
+                    <div id="day-status" class="day-status open">
+                        <i class="fas fa-calendar-day"></i> Today
+                    </div>
+                    <div class="day-buttons">
+                        <button class="btn btn-primary" id="start-day-btn">
+                            <i class="fas fa-sun"></i> Start Day
+                        </button>
+                        <button class="btn btn-secondary" id="close-day-btn">
+                            <i class="fas fa-moon"></i> Close Day
+                        </button>
                     </div>
                 </div>
 
@@ -146,6 +309,323 @@
                 </div>
             </div>
         </aside>
+    </div>
+
+    <!-- POS Entry Type Modal -->
+    <div class="modal" id="pos-entry-modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Select Entry Type</h3>
+                <button class="modal-close" id="close-pos-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="entry-type-section">
+                    <h4>Transaction Type</h4>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="pos-entry-type" value="sale" checked>
+                            <span class="radio-label">
+                                <i class="fas fa-shopping-cart"></i>
+                                <strong>Sale</strong>
+                            </span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="pos-entry-type" value="return">
+                            <span class="radio-label">
+                                <i class="fas fa-undo"></i>
+                                <strong>Return</strong>
+                            </span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="pos-entry-type" value="salesman">
+                            <span class="radio-label">
+                                <i class="fas fa-user-tie"></i>
+                                <strong>Salesman</strong>
+                            </span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="pos-entry-type" value="party">
+                            <span class="radio-label">
+                                <i class="fas fa-handshake"></i>
+                                <strong>Party</strong>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="payment-method-section">
+                    <h4>Payment Method</h4>
+                    <div class="checkbox-group">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="payment-method" value="cash" checked>
+                            <span class="checkbox-label">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <strong>Cash</strong>
+                            </span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="payment-method" value="online">
+                            <span class="checkbox-label">
+                                <i class="fas fa-credit-card"></i>
+                                <strong>Online</strong>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancel-pos-entry">Cancel</button>
+                    <button class="btn btn-primary" id="confirm-pos-entry">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Debtor Modal -->
+    <div class="modal" id="add-debtor-modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Add Debtor</h3>
+                <button class="modal-close" id="close-debtor-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="debtor-party-name">Party Name *</label>
+                    <input type="text" id="debtor-party-name" class="form-input" placeholder="Enter party name" required>
+                </div>
+                <div class="form-group">
+                    <label for="debtor-salesman">Salesman</label>
+                    <input type="text" id="debtor-salesman" class="form-input" placeholder="Enter salesman name">
+                </div>
+                <div class="form-group">
+                    <label for="debtor-bill-no">Bill Number</label>
+                    <input type="text" id="debtor-bill-no" class="form-input" placeholder="Auto-generated if empty">
+                </div>
+                <div class="form-group">
+                    <label for="debtor-amount">Amount *</label>
+                    <input type="number" id="debtor-amount" class="form-input" placeholder="0.00" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="debtor-notes">Notes</label>
+                    <textarea id="debtor-notes" class="form-input" rows="2" placeholder="Optional notes"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancel-debtor">Cancel</button>
+                    <button class="btn btn-primary" id="confirm-debtor">Add Debtor</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Record Collection Modal -->
+    <div class="modal" id="collection-modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Record Collection</h3>
+                <button class="modal-close" id="close-collection-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="collection-debtor">Select Debtor *</label>
+                    <select id="collection-debtor" class="form-input" required>
+                        <option value="">-- Select Pending Debtor --</option>
+                    </select>
+                </div>
+                <div id="collection-debtor-details" class="debtor-details" style="display: none;">
+                    <div class="detail-row">
+                        <span>Party:</span>
+                        <strong id="collection-party-name"></strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Bill No:</span>
+                        <strong id="collection-bill-no"></strong>
+                    </div>
+                    <div class="detail-row">
+                        <span>Pending Amount:</span>
+                        <strong id="collection-pending-amount" class="text-error"></strong>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="collection-amount">Amount Collecting *</label>
+                    <input type="number" id="collection-amount" class="form-input" placeholder="0.00" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="collection-payment-mode">Payment Mode</label>
+                    <select id="collection-payment-mode" class="form-input">
+                        <option value="Cash">Cash</option>
+                        <option value="Online">Online</option>
+                        <option value="QR">QR</option>
+                        <option value="Swipe">Swipe</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancel-collection">Cancel</button>
+                    <button class="btn btn-primary" id="confirm-collection">Record Payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div class="modal" id="expense-modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Add Expense</h3>
+                <button class="modal-close" id="close-expense-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="expense-purpose">Purpose *</label>
+                    <input type="text" id="expense-purpose" class="form-input" placeholder="e.g., Vegetables, Transport" required>
+                </div>
+                <div class="form-group">
+                    <label for="expense-amount">Amount *</label>
+                    <input type="number" id="expense-amount" class="form-input" placeholder="0.00" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="expense-category">Category</label>
+                    <select id="expense-category" class="form-input">
+                        <option value="General">General</option>
+                        <option value="Supplies">Supplies</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Utilities">Utilities</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="expense-notes">Notes</label>
+                    <textarea id="expense-notes" class="form-input" rows="2" placeholder="Optional notes"></textarea>
+                </div>
+                <div class="available-cash-warning">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Available Cash: <strong id="modal-available-cash">₹0.00</strong></span>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancel-expense">Cancel</button>
+                    <button class="btn btn-primary" id="confirm-expense">Add Expense</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Opening Cash Modal -->
+    <div class="modal" id="opening-cash-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Day Start - Opening Cash</h3>
+                <button class="modal-close" id="close-opening-cash-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">Enter the opening cash denomination breakdown:</p>
+                
+                <table class="opening-denom-table">
+                    <thead>
+                        <tr>
+                            <th>Denomination</th>
+                            <th>No. of Pcs</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>₹2000</td>
+                            <td><input type="number" id="opening-denom-2000" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="opening-amount-2000">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹500</td>
+                            <td><input type="number" id="opening-denom-500" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="opening-amount-500">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹200</td>
+                            <td><input type="number" id="opening-denom-200" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="opening-amount-200">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹100</td>
+                            <td><input type="number" id="opening-denom-100" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="opening-amount-100">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹50</td>
+                            <td><input type="number" id="opening-denom-50" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="opening-amount-50">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹20</td>
+                            <td><input type="number" id="opening-denom-20" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="opening-amount-20">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹10</td>
+                            <td><input type="number" id="opening-denom-10" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="opening-amount-10">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹5</td>
+                            <td><input type="number" id="opening-denom-5" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="opening-amount-5">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹2</td>
+                            <td><input type="number" id="opening-denom-2" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="opening-amount-2">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>₹1</td>
+                            <td><input type="number" id="opening-denom-1" min="0" class="form-input"></td>
+                            <td class="amount-cell">₹<span id="opening-amount-1">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>Coins</td>
+                            <td colspan="2"><input type="number" id="opening-coins" step="0.01" min="0" class="form-input" placeholder="Enter coins amount"></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="2"><strong>Total Opening Cash:</strong></td>
+                            <td class="amount-cell"><strong id="opening-total-display">₹0.00</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancel-opening-cash">Cancel</button>
+                    <button class="btn btn-primary" id="confirm-opening-cash">Start Day</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day Close Modal -->
+    <div class="modal" id="day-close-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Day Closing</h3>
+                <button class="modal-close" id="close-day-close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">Verify all checks before closing the day:</p>
+                
+                <div id="closing-checklist" class="closing-checklist">
+                    <!-- Dynamic checklist items -->
+                </div>
+
+                <div class="warning-box">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Warning:</strong> After closing the day, all entries will be locked and cannot be edited. 
+                        Data will be archived and you can start a new day.
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancel-day-close">Cancel</button>
+                    <button class="btn btn-primary" id="confirm-day-close">Close Day</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Help Modal -->
@@ -209,6 +689,14 @@
     <script src="https://unpkg.com/file-saver@latest/dist/FileSaver.min.js"></script>
 
     <!-- Application Modules -->
+    <script src="modules/serialNumber.js"></script>
+    <script src="modules/debtors.js"></script>
+    <script src="modules/collections.js"></script>
+    <script src="modules/expenses.js"></script>
+    <script src="modules/calculations.js"></script>
+    <script src="modules/modalHandlers.js"></script>
+    <script src="modules/dayManagement.js"></script>
+    <script src="modules/reports.js"></script>
     <script src="modules/api.js"></script>
     <script src="modules/formulaEngine.js"></script>
     <script src="modules/persistence.js"></script>
@@ -219,6 +707,19 @@
 
     <!-- Main Application -->
     <script src="app.js"></script>
+    
+    <!-- Initialize Modules -->
+    <script>
+        // Initialize modules after DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof modalHandlers !== 'undefined') {
+                modalHandlers.initializeLists();
+            }
+            if (typeof dayManager !== 'undefined') {
+                dayManager.initialize();
+            }
+        });
+    </script>
 </body>
 </html>
 

@@ -383,34 +383,102 @@ class UIManager {
      * Add total rows for each section
      */
     addTotalRows(gridBody) {
-        const sections = ['POS', 'KQR', 'KSW', 'DEBTOR'];
+        const tr = document.createElement('tr');
+        tr.className = 'grid-row total-row';
+
+        // POS Section: 4 groups (8 columns total)
+        for (let group = 0; group < 4; group++) {
+            // SR.NO cell
+            const srCell = document.createElement('td');
+            srCell.className = 'grid-cell total-cell';
+            srCell.textContent = 'TOTAL';
+            tr.appendChild(srCell);
+            
+            // AMOUNT cell with total
+            const amountCell = document.createElement('td');
+            amountCell.className = 'grid-cell total-cell';
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.dataset.cellKey = `POS_TOTAL_${group}`;
+            input.dataset.isTotal = 'true';
+            input.readOnly = true;
+            input.className = 'calculated';
+            input.placeholder = '0';
+            amountCell.appendChild(input);
+            tr.appendChild(amountCell);
+        }
+
+        // QR Section (3 columns)
+        const qrSrCell = document.createElement('td');
+        qrSrCell.className = 'grid-cell total-cell';
+        qrSrCell.textContent = 'TOTAL';
+        tr.appendChild(qrSrCell);
         
-        sections.forEach(section => {
-            const tr = document.createElement('tr');
-            tr.className = 'grid-row total-row';
-            tr.dataset.section = section;
+        const qrSalesmanCell = document.createElement('td');
+        qrSalesmanCell.className = 'grid-cell total-cell';
+        tr.appendChild(qrSalesmanCell);
+        
+        const qrAmountCell = document.createElement('td');
+        qrAmountCell.className = 'grid-cell total-cell';
+        const qrInput = document.createElement('input');
+        qrInput.type = 'text';
+        qrInput.dataset.cellKey = 'KQR_TOTAL';
+        qrInput.dataset.isTotal = 'true';
+        qrInput.readOnly = true;
+        qrInput.className = 'calculated';
+        qrInput.placeholder = '0';
+        qrAmountCell.appendChild(qrInput);
+        tr.appendChild(qrAmountCell);
 
-            sections.forEach((colSection, colIndex) => {
-                const td = document.createElement('td');
-                td.className = 'grid-cell total-cell';
-                
-                if (colSection === section) {
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.dataset.cellKey = `${section}_TOTAL`;
-                    input.dataset.isTotal = 'true';
-                    input.readOnly = true;
-                    input.className = 'calculated';
-                    input.placeholder = '0';
-                    
-                    td.appendChild(input);
-                }
-                
-                tr.appendChild(td);
-            });
+        // SWIPE Section (3 columns)
+        const swSrCell = document.createElement('td');
+        swSrCell.className = 'grid-cell total-cell';
+        swSrCell.textContent = 'TOTAL';
+        tr.appendChild(swSrCell);
+        
+        const swSalesmanCell = document.createElement('td');
+        swSalesmanCell.className = 'grid-cell total-cell';
+        tr.appendChild(swSalesmanCell);
+        
+        const swAmountCell = document.createElement('td');
+        swAmountCell.className = 'grid-cell total-cell';
+        const swInput = document.createElement('input');
+        swInput.type = 'text';
+        swInput.dataset.cellKey = 'KSW_TOTAL';
+        swInput.dataset.isTotal = 'true';
+        swInput.readOnly = true;
+        swInput.className = 'calculated';
+        swInput.placeholder = '0';
+        swAmountCell.appendChild(swInput);
+        tr.appendChild(swAmountCell);
 
-            gridBody.appendChild(tr);
-        });
+        // DEBTORS Section (4 columns)
+        const debtorSrCell = document.createElement('td');
+        debtorSrCell.className = 'grid-cell total-cell';
+        debtorSrCell.textContent = 'TOTAL';
+        tr.appendChild(debtorSrCell);
+        
+        const debtorSalesmanCell = document.createElement('td');
+        debtorSalesmanCell.className = 'grid-cell total-cell';
+        tr.appendChild(debtorSalesmanCell);
+        
+        const debtorPartyCell = document.createElement('td');
+        debtorPartyCell.className = 'grid-cell total-cell';
+        tr.appendChild(debtorPartyCell);
+        
+        const debtorAmountCell = document.createElement('td');
+        debtorAmountCell.className = 'grid-cell total-cell';
+        const debtorInput = document.createElement('input');
+        debtorInput.type = 'text';
+        debtorInput.dataset.cellKey = 'DEBTOR_TOTAL';
+        debtorInput.dataset.isTotal = 'true';
+        debtorInput.readOnly = true;
+        debtorInput.className = 'calculated';
+        debtorInput.placeholder = '0';
+        debtorAmountCell.appendChild(debtorInput);
+        tr.appendChild(debtorAmountCell);
+
+        gridBody.appendChild(tr);
     }
 
     /**

@@ -290,8 +290,9 @@ class UIManager {
 
             // KOTAK QR Section (SR.NO, SALESMAN, AMOUNT)
             const kqrSrCell = document.createElement('td');
-            kqrSrCell.className = 'grid-cell sr-no-cell';
-            kqrSrCell.textContent = row + 1;
+            kqrSrCell.className = 'grid-cell';
+            const kqrSrInput = this.createInput('KQR', row, 'SRNO');
+            kqrSrCell.appendChild(kqrSrInput);
             tr.appendChild(kqrSrCell);
             
             const kqrSalesmanCell = document.createElement('td');
@@ -308,8 +309,9 @@ class UIManager {
 
             // KOTAK SWIPE Section (SR.NO, SALESMAN, AMOUNT)
             const kswSrCell = document.createElement('td');
-            kswSrCell.className = 'grid-cell sr-no-cell';
-            kswSrCell.textContent = row + 1;
+            kswSrCell.className = 'grid-cell';
+            const kswSrInput = this.createInput('KSW', row, 'SRNO');
+            kswSrCell.appendChild(kswSrInput);
             tr.appendChild(kswSrCell);
             
             const kswSalesmanCell = document.createElement('td');

@@ -148,7 +148,12 @@ class ExportUtils {
                     transactionRef = entryInfo.transactionRef || '';
                 }
                 
-                data.entries[section][`row_${rowIndex}`] = {
+                // Store entry data with row index as key
+                if (!data.entries[section][`row_${rowIndex}`]) {
+                    data.entries[section][`row_${rowIndex}`] = {};
+                }
+                
+                data.entries[section][`row_${rowIndex}`][fieldType] = {
                     cellKey,
                     fieldType,
                     value,
@@ -219,25 +224,35 @@ class ExportUtils {
         
         // Entries
         rows.push(['ENTRIES']);
-        rows.push(['Section', 'Row', 'Field', 'Cell Key', 'Value', 'Entry Type', 'Payment Method', 'Transaction Ref']);
+        rows.push(['Section', 'Row', 'SR.NO', 'Salesman', 'Party', 'Amount', 'Entry Type', 'Payment Method', 'Transaction Ref']);
         
         Object.entries(data.entries).forEach(([section, sectionData]) => {
-            Object.entries(sectionData).forEach(([rowKey, entryData]) => {
-                // Format payment methods
-                const paymentMethods = entryData.paymentMethods && entryData.paymentMethods.length > 0
-                    ? entryData.paymentMethods.join(', ')
+            Object.entries(sectionData).forEach(([rowKey, rowData]) => {
+                // rowData is now an object with fields (SRNO, SALESMAN, PARTY, AMOUNT)
+                const srno = rowData.SRNO?.value || '';
+                const salesman = rowData.SALESMAN?.value || '';
+                const party = rowData.PARTY?.value || '';
+                const amount = rowData.AMOUNT?.value || '';
+                const entryType = rowData.AMOUNT?.entryType || '';
+                const paymentMethods = rowData.AMOUNT?.paymentMethods && rowData.AMOUNT.paymentMethods.length > 0
+                    ? rowData.AMOUNT.paymentMethods.join(', ')
                     : '';
+                const transactionRef = rowData.AMOUNT?.transactionRef || '';
                 
-                rows.push([
-                    section,
-                    rowKey.replace('row_', ''),
-                    entryData.fieldType || 'AMOUNT',
-                    entryData.cellKey,
-                    entryData.value,
-                    entryData.entryType || '',
-                    paymentMethods,
-                    entryData.transactionRef || ''
-                ]);
+                // Only add row if there's any data
+                if (srno || salesman || party || amount) {
+                    rows.push([
+                        section,
+                        rowKey.replace('row_', ''),
+                        srno,
+                        salesman,
+                        party,
+                        amount,
+                        entryType,
+                        paymentMethods,
+                        transactionRef
+                    ]);
+                }
             });
         });
         
@@ -337,26 +352,36 @@ class ExportUtils {
         
         // Entries sheet
         const entriesData = [
-            ['Section', 'Row', 'Field', 'Cell Key', 'Value', 'Entry Type', 'Payment Method', 'Transaction Ref']
+            ['Section', 'Row', 'SR.NO', 'Salesman', 'Party', 'Amount', 'Entry Type', 'Payment Method', 'Transaction Ref']
         ];
         
         Object.entries(data.entries).forEach(([section, sectionData]) => {
-            Object.entries(sectionData).forEach(([rowKey, entryData]) => {
-                // Format payment methods
-                const paymentMethods = entryData.paymentMethods && entryData.paymentMethods.length > 0
-                    ? entryData.paymentMethods.join(', ')
+            Object.entries(sectionData).forEach(([rowKey, rowData]) => {
+                // rowData is now an object with fields (SRNO, SALESMAN, PARTY, AMOUNT)
+                const srno = rowData.SRNO?.value || '';
+                const salesman = rowData.SALESMAN?.value || '';
+                const party = rowData.PARTY?.value || '';
+                const amount = rowData.AMOUNT?.value || '';
+                const entryType = rowData.AMOUNT?.entryType || '';
+                const paymentMethods = rowData.AMOUNT?.paymentMethods && rowData.AMOUNT.paymentMethods.length > 0
+                    ? rowData.AMOUNT.paymentMethods.join(', ')
                     : '';
+                const transactionRef = rowData.AMOUNT?.transactionRef || '';
                 
-                entriesData.push([
-                    section,
-                    rowKey.replace('row_', ''),
-                    entryData.fieldType || 'AMOUNT',
-                    entryData.cellKey,
-                    entryData.value,
-                    entryData.entryType || '',
-                    paymentMethods,
-                    entryData.transactionRef || ''
-                ]);
+                // Only add row if there's any data
+                if (srno || salesman || party || amount) {
+                    entriesData.push([
+                        section,
+                        rowKey.replace('row_', ''),
+                        srno,
+                        salesman,
+                        party,
+                        amount,
+                        entryType,
+                        paymentMethods,
+                        transactionRef
+                    ]);
+                }
             });
         });
         
@@ -559,8 +584,10 @@ class ExportUtils {
             <tr>
                 <th>Section</th>
                 <th>Row</th>
-                <th>Field</th>
-                <th>Value</th>
+                <th>SR.NO</th>
+                <th>Salesman</th>
+                <th>Party</th>
+                <th>Amount</th>
                 <th>Entry Type</th>
                 <th>Payment Method</th>
                 <th>Transaction Ref</th>
@@ -604,36 +631,50 @@ class ExportUtils {
         let rows = '';
         
         Object.entries(entries).forEach(([section, sectionData]) => {
-            Object.entries(sectionData).forEach(([rowKey, entryData]) => {
-                // Format payment methods
-                let paymentMethodHTML = '-';
-                if (entryData.paymentMethods && entryData.paymentMethods.length > 0) {
-                    const methods = entryData.paymentMethods.map(m => {
-                        if (m === 'cash') return '💵 Cash';
-                        if (m === 'online') return '💳 Online';
-                        return m;
-                    });
-                    paymentMethodHTML = `<span class="payment-method">${methods.join(', ')}</span>`;
-                }
+            Object.entries(sectionData).forEach(([rowKey, rowData]) => {
+                // rowData is now an object with fields (SRNO, SALESMAN, PARTY, AMOUNT)
+                const srno = rowData.SRNO?.value || '-';
+                const salesman = rowData.SALESMAN?.value || '-';
+                const party = rowData.PARTY?.value || '-';
+                const amount = rowData.AMOUNT?.value || '-';
+                const entryType = rowData.AMOUNT?.entryType || '';
+                const paymentMethods = rowData.AMOUNT?.paymentMethods || [];
+                const transactionRef = rowData.AMOUNT?.transactionRef || '';
                 
-                // Format entry type with styling
-                let entryTypeHTML = '-';
-                if (entryData.entryType) {
-                    const type = entryData.entryType.toLowerCase();
-                    entryTypeHTML = `<span class="entry-type ${type}">${entryData.entryType.toUpperCase()}</span>`;
+                // Only add row if there's any data
+                if (srno !== '-' || salesman !== '-' || party !== '-' || amount !== '-') {
+                    // Format payment methods
+                    let paymentMethodHTML = '-';
+                    if (paymentMethods.length > 0) {
+                        const methods = paymentMethods.map(m => {
+                            if (m === 'cash') return '💵 Cash';
+                            if (m === 'online') return '💳 Online';
+                            return m;
+                        });
+                        paymentMethodHTML = `<span class="payment-method">${methods.join(', ')}</span>`;
+                    }
+                    
+                    // Format entry type with styling
+                    let entryTypeHTML = '-';
+                    if (entryType) {
+                        const type = entryType.toLowerCase();
+                        entryTypeHTML = `<span class="entry-type ${type}">${entryType.toUpperCase()}</span>`;
+                    }
+                    
+                    rows += `
+                        <tr>
+                            <td>${section}</td>
+                            <td>${rowKey.replace('row_', '')}</td>
+                            <td>${srno}</td>
+                            <td>${salesman}</td>
+                            <td>${party}</td>
+                            <td><strong>${amount}</strong></td>
+                            <td>${entryTypeHTML}</td>
+                            <td>${paymentMethodHTML}</td>
+                            <td>${transactionRef || '-'}</td>
+                        </tr>
+                    `;
                 }
-                
-                rows += `
-                    <tr>
-                        <td>${section}</td>
-                        <td>${rowKey.replace('row_', '')}</td>
-                        <td>${entryData.fieldType || 'AMOUNT'}</td>
-                        <td><strong>${entryData.value}</strong></td>
-                        <td>${entryTypeHTML}</td>
-                        <td>${paymentMethodHTML}</td>
-                        <td>${entryData.transactionRef || '-'}</td>
-                    </tr>
-                `;
             });
         });
         

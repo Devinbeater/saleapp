@@ -136,14 +136,16 @@ class ExportUtils {
                     data.entries[section] = {};
                 }
                 
-                // Get entry type and payment methods for POS entries
+                // Get entry type, payment methods, and transaction ref for POS entries
                 let entryType = '';
                 let paymentMethods = [];
+                let transactionRef = '';
                 
                 if (section === 'POS' && fieldType === 'AMOUNT' && uiManager.entryTypes[cellKey]) {
                     const entryInfo = uiManager.entryTypes[cellKey];
                     entryType = entryInfo.type || '';
                     paymentMethods = entryInfo.paymentMethods || [];
+                    transactionRef = entryInfo.transactionRef || '';
                 }
                 
                 data.entries[section][`row_${rowIndex}`] = {
@@ -152,7 +154,8 @@ class ExportUtils {
                     value,
                     calculatedValue: formulaEngine.getCalculatedValue(cellKey),
                     entryType,
-                    paymentMethods
+                    paymentMethods,
+                    transactionRef
                 };
             }
         });
@@ -178,6 +181,21 @@ class ExportUtils {
             totalCash: document.getElementById('total-cash')?.textContent || '0'
         };
 
+        // Collect Debtors data
+        if (typeof debtorsManager !== 'undefined') {
+            data.debtors = debtorsManager.debtors || [];
+        }
+
+        // Collect Collections data
+        if (typeof collectionsManager !== 'undefined') {
+            data.collections = collectionsManager.collections || [];
+        }
+
+        // Collect Expenses data
+        if (typeof expensesManager !== 'undefined') {
+            data.expenses = expensesManager.expenses || [];
+        }
+
         return data;
     }
 
@@ -201,7 +219,7 @@ class ExportUtils {
         
         // Entries
         rows.push(['ENTRIES']);
-        rows.push(['Section', 'Row', 'Field', 'Cell Key', 'Value', 'Entry Type', 'Payment Method']);
+        rows.push(['Section', 'Row', 'Field', 'Cell Key', 'Value', 'Entry Type', 'Payment Method', 'Transaction Ref']);
         
         Object.entries(data.entries).forEach(([section, sectionData]) => {
             Object.entries(sectionData).forEach(([rowKey, entryData]) => {
@@ -217,10 +235,63 @@ class ExportUtils {
                     entryData.cellKey,
                     entryData.value,
                     entryData.entryType || '',
-                    paymentMethods
+                    paymentMethods,
+                    entryData.transactionRef || ''
                 ]);
             });
         });
+        
+        rows.push([]);
+        
+        // Debtors
+        if (data.debtors && data.debtors.length > 0) {
+            rows.push(['DEBTORS']);
+            rows.push(['Party Name', 'Salesman', 'Bill No', 'Amount', 'Status', 'Date']);
+            data.debtors.forEach(debtor => {
+                rows.push([
+                    debtor.partyName || '',
+                    debtor.salesman || '',
+                    debtor.billNo || '',
+                    debtor.amount || 0,
+                    debtor.status || 'Pending',
+                    debtor.date || ''
+                ]);
+            });
+            rows.push([]);
+        }
+        
+        // Collections
+        if (data.collections && data.collections.length > 0) {
+            rows.push(['COLLECTIONS']);
+            rows.push(['Party Name', 'Bill No', 'Amount', 'Payment Mode', 'Collection Date']);
+            data.collections.forEach(collection => {
+                rows.push([
+                    collection.partyName || '',
+                    collection.billNo || '',
+                    collection.amount || 0,
+                    collection.paymentMode || '',
+                    collection.collectionDate || ''
+                ]);
+            });
+            rows.push([]);
+        }
+        
+        // Expenses
+        if (data.expenses && data.expenses.length > 0) {
+            rows.push(['EXPENSES']);
+            rows.push(['Purpose', 'Category', 'Amount', 'Time', 'Date', 'Notes']);
+            data.expenses.forEach(expense => {
+                rows.push([
+                    expense.purpose || '',
+                    expense.category || '',
+                    expense.amount || 0,
+                    expense.time || '',
+                    expense.date || '',
+                    expense.notes || ''
+                ]);
+            });
+            rows.push([]);
+        }
         
         rows.push([]);
         
@@ -266,7 +337,7 @@ class ExportUtils {
         
         // Entries sheet
         const entriesData = [
-            ['Section', 'Row', 'Field', 'Cell Key', 'Value', 'Entry Type', 'Payment Method']
+            ['Section', 'Row', 'Field', 'Cell Key', 'Value', 'Entry Type', 'Payment Method', 'Transaction Ref']
         ];
         
         Object.entries(data.entries).forEach(([section, sectionData]) => {
@@ -283,13 +354,70 @@ class ExportUtils {
                     entryData.cellKey,
                     entryData.value,
                     entryData.entryType || '',
-                    paymentMethods
+                    paymentMethods,
+                    entryData.transactionRef || ''
                 ]);
             });
         });
         
         const entriesSheet = XLSX.utils.aoa_to_sheet(entriesData);
         XLSX.utils.book_append_sheet(workbook, entriesSheet, 'Entries');
+        
+        // Debtors sheet
+        if (data.debtors && data.debtors.length > 0) {
+            const debtorsData = [
+                ['Party Name', 'Salesman', 'Bill No', 'Amount', 'Status', 'Date']
+            ];
+            data.debtors.forEach(debtor => {
+                debtorsData.push([
+                    debtor.partyName || '',
+                    debtor.salesman || '',
+                    debtor.billNo || '',
+                    debtor.amount || 0,
+                    debtor.status || 'Pending',
+                    debtor.date || ''
+                ]);
+            });
+            const debtorsSheet = XLSX.utils.aoa_to_sheet(debtorsData);
+            XLSX.utils.book_append_sheet(workbook, debtorsSheet, 'Debtors');
+        }
+        
+        // Collections sheet
+        if (data.collections && data.collections.length > 0) {
+            const collectionsData = [
+                ['Party Name', 'Bill No', 'Amount', 'Payment Mode', 'Collection Date']
+            ];
+            data.collections.forEach(collection => {
+                collectionsData.push([
+                    collection.partyName || '',
+                    collection.billNo || '',
+                    collection.amount || 0,
+                    collection.paymentMode || '',
+                    collection.collectionDate || ''
+                ]);
+            });
+            const collectionsSheet = XLSX.utils.aoa_to_sheet(collectionsData);
+            XLSX.utils.book_append_sheet(workbook, collectionsSheet, 'Collections');
+        }
+        
+        // Expenses sheet
+        if (data.expenses && data.expenses.length > 0) {
+            const expensesData = [
+                ['Purpose', 'Category', 'Amount', 'Time', 'Date', 'Notes']
+            ];
+            data.expenses.forEach(expense => {
+                expensesData.push([
+                    expense.purpose || '',
+                    expense.category || '',
+                    expense.amount || 0,
+                    expense.time || '',
+                    expense.date || '',
+                    expense.notes || ''
+                ]);
+            });
+            const expensesSheet = XLSX.utils.aoa_to_sheet(expensesData);
+            XLSX.utils.book_append_sheet(workbook, expensesSheet, 'Expenses');
+        }
         
         // Denominations sheet
         const denominationsData = [
@@ -435,12 +563,17 @@ class ExportUtils {
                 <th>Value</th>
                 <th>Entry Type</th>
                 <th>Payment Method</th>
+                <th>Transaction Ref</th>
             </tr>
         </thead>
         <tbody>
             ${this.generateEntriesTableRows(data.entries)}
         </tbody>
     </table>
+    
+    ${this.generateDebtorsTable(data.debtors)}
+    ${this.generateCollectionsTable(data.collections)}
+    ${this.generateExpensesTable(data.expenses)}
     
     <h3>DENOMINATIONS</h3>
     <table>
@@ -498,12 +631,131 @@ class ExportUtils {
                         <td><strong>${entryData.value}</strong></td>
                         <td>${entryTypeHTML}</td>
                         <td>${paymentMethodHTML}</td>
+                        <td>${entryData.transactionRef || '-'}</td>
                     </tr>
                 `;
             });
         });
         
         return rows;
+    }
+
+    /**
+     * Generate Debtors table for print HTML
+     */
+    generateDebtorsTable(debtors) {
+        if (!debtors || debtors.length === 0) return '';
+        
+        let rows = '';
+        debtors.forEach(debtor => {
+            rows += `
+                <tr>
+                    <td>${debtor.partyName || '-'}</td>
+                    <td>${debtor.salesman || '-'}</td>
+                    <td>${debtor.billNo || '-'}</td>
+                    <td><strong>₹${debtor.amount || 0}</strong></td>
+                    <td><span class="entry-type ${debtor.status === 'Paid' ? 'sale' : 'return'}">${debtor.status || 'Pending'}</span></td>
+                    <td>${debtor.date || '-'}</td>
+                </tr>
+            `;
+        });
+        
+        return `
+            <h3>DEBTORS</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Party Name</th>
+                        <th>Salesman</th>
+                        <th>Bill No</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                </tbody>
+            </table>
+        `;
+    }
+
+    /**
+     * Generate Collections table for print HTML
+     */
+    generateCollectionsTable(collections) {
+        if (!collections || collections.length === 0) return '';
+        
+        let rows = '';
+        collections.forEach(collection => {
+            rows += `
+                <tr>
+                    <td>${collection.partyName || '-'}</td>
+                    <td>${collection.billNo || '-'}</td>
+                    <td><strong>₹${collection.amount || 0}</strong></td>
+                    <td>${collection.paymentMode || '-'}</td>
+                    <td>${collection.collectionDate || '-'}</td>
+                </tr>
+            `;
+        });
+        
+        return `
+            <h3>COLLECTIONS</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Party Name</th>
+                        <th>Bill No</th>
+                        <th>Amount</th>
+                        <th>Payment Mode</th>
+                        <th>Collection Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                </tbody>
+            </table>
+        `;
+    }
+
+    /**
+     * Generate Expenses table for print HTML
+     */
+    generateExpensesTable(expenses) {
+        if (!expenses || expenses.length === 0) return '';
+        
+        let rows = '';
+        expenses.forEach(expense => {
+            rows += `
+                <tr>
+                    <td>${expense.purpose || '-'}</td>
+                    <td>${expense.category || '-'}</td>
+                    <td><strong>₹${expense.amount || 0}</strong></td>
+                    <td>${expense.time || '-'}</td>
+                    <td>${expense.date || '-'}</td>
+                    <td>${expense.notes || '-'}</td>
+                </tr>
+            `;
+        });
+        
+        return `
+            <h3>EXPENSES</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Purpose</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Time</th>
+                        <th>Date</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                </tbody>
+            </table>
+        `;
     }
 
     /**

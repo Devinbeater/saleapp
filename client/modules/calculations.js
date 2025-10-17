@@ -35,6 +35,44 @@ class CalculationsManager {
     }
 
     /**
+     * Get POS sale by cash payment method
+     * @returns {number}
+     */
+    getPOSSaleCash() {
+        let total = 0;
+        if (typeof uiManager !== 'undefined' && uiManager.sheetData && uiManager.sheetData.POS) {
+            uiManager.sheetData.POS.forEach(row => {
+                if (row.paymentMethods && row.paymentMethods.includes('cash')) {
+                    const value = parseFloat(row.amount) || 0;
+                    if (value > 0) {
+                        total += value;
+                    }
+                }
+            });
+        }
+        return total;
+    }
+
+    /**
+     * Get POS sale by online payment method
+     * @returns {number}
+     */
+    getPOSSaleOnline() {
+        let total = 0;
+        if (typeof uiManager !== 'undefined' && uiManager.sheetData && uiManager.sheetData.POS) {
+            uiManager.sheetData.POS.forEach(row => {
+                if (row.paymentMethods && row.paymentMethods.includes('online')) {
+                    const value = parseFloat(row.amount) || 0;
+                    if (value > 0) {
+                        total += value;
+                    }
+                }
+            });
+        }
+        return total;
+    }
+
+    /**
      * Get total expenses
      * @returns {number}
      */
@@ -219,6 +257,14 @@ class CalculationsManager {
         // Total Sale
         const totalSale = this.getTotalSale();
         this.updateDisplay('total-sale', totalSale);
+
+        // POS Sale by Cash
+        const posSaleCash = this.getPOSSaleCash();
+        this.updateDisplay('pos-sale-cash', posSaleCash);
+
+        // POS Sale by Online
+        const posSaleOnline = this.getPOSSaleOnline();
+        this.updateDisplay('pos-sale-online', posSaleOnline);
 
         // Debit Cash
         const debitCash = this.getDebitCash();

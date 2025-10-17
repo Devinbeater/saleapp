@@ -152,6 +152,17 @@ class UIManager {
             });
         }
 
+        // Online payment checkbox - show/hide transaction reference field
+        const onlineCheckbox = document.getElementById('online-payment-checkbox');
+        if (onlineCheckbox) {
+            onlineCheckbox.addEventListener('change', (event) => {
+                const transactionRefSection = document.getElementById('transaction-ref-section');
+                if (transactionRefSection) {
+                    transactionRefSection.style.display = event.target.checked ? 'block' : 'none';
+                }
+            });
+        }
+
         // Opening Cash input
         const openingCashInput = document.getElementById('opening-cash');
 
@@ -356,7 +367,13 @@ class UIManager {
         
         // Get value from sheetData if exists
         if (this.sheetData[section] && this.sheetData[section][rowIndex]) {
-            input.value = this.sheetData[section][rowIndex][fieldType.toLowerCase()] || '';
+            const rowData = this.sheetData[section][rowIndex];
+            // For AMOUNT fields, check both 'amount' and 'value' properties
+            if (fieldType === 'AMOUNT') {
+                input.value = rowData.amount || rowData.value || '';
+            } else {
+                input.value = rowData[fieldType.toLowerCase()] || '';
+            }
         }
         
         // Add event listeners
@@ -375,6 +392,16 @@ class UIManager {
         input.addEventListener('focus', (event) => {
             this.handleCellFocus(event);
         });
+        
+        // Restore badges if this cell has entry type configured
+        const cellKey = input.dataset.cellKey;
+        if (this.entryTypes[cellKey]) {
+            const entryData = this.entryTypes[cellKey];
+            // Add badges after a short delay to ensure the input is in the DOM
+            setTimeout(() => {
+                this.addEntryBadges(input, entryData.type, entryData.paymentMethods);
+            }, 0);
+        }
 
         return input;
     }
@@ -587,13 +614,6 @@ class UIManager {
         const rowIndex = parseInt(input.dataset.rowIndex);
         const value = input.value;
 
-        // Show POS entry modal for POS section when user starts typing
-        if (section === 'POS' && value && !this.entryTypes[input.dataset.cellKey]) {
-            this.currentPOSInput = input;
-            this.showPOSModal();
-            return;
-        }
-
         // Update sheet data
         if (!this.sheetData[section][rowIndex]) {
             this.sheetData[section][rowIndex] = { value: '' };
@@ -695,6 +715,17 @@ class UIManager {
     handleCellFocus(event) {
         const input = event.target;
         const cellKey = input.dataset.cellKey;
+        const section = input.dataset.section;
+        const fieldType = input.dataset.fieldType;
+        
+        // Open POS modal when clicking on POS AMOUNT cells (only if not already configured)
+        if (section === 'POS' && fieldType === 'AMOUNT' && !this.entryTypes[cellKey]) {
+            this.currentPOSInput = input;
+            this.showPOSModal();
+            // Prevent default focus behavior
+            event.preventDefault();
+            return;
+        }
         
         // Show raw value/formula when focused
         const formula = formulaEngine.getCellFormula(cellKey);
@@ -1161,12 +1192,33 @@ class UIManager {
     showPOSModal() {
         const modal = document.getElementById('pos-entry-modal');
         if (modal) {
-            modal.classList.add('show');
             // Reset to default selection
             const saleRadio = document.querySelector('input[name="pos-entry-type"][value="sale"]');
             if (saleRadio) {
                 saleRadio.checked = true;
             }
+            
+            // Reset payment methods - cash checked by default
+            const cashCheckbox = document.querySelector('input[name="payment-method"][value="cash"]');
+            const onlineCheckbox = document.querySelector('input[name="payment-method"][value="online"]');
+            if (cashCheckbox) cashCheckbox.checked = true;
+            if (onlineCheckbox) onlineCheckbox.checked = false;
+            
+            // Clear amount input
+            const amountInput = document.getElementById('pos-amount-input');
+            if (amountInput) {
+                amountInput.value = this.currentPOSInput ? this.currentPOSInput.value : '';
+                // Focus on amount input
+                setTimeout(() => amountInput.focus(), 100);
+            }
+            
+            // Clear and hide transaction reference
+            const transactionRefInput = document.getElementById('transaction-ref-input');
+            const transactionRefSection = document.getElementById('transaction-ref-section');
+            if (transactionRefInput) transactionRefInput.value = '';
+            if (transactionRefSection) transactionRefSection.style.display = 'none';
+            
+            modal.classList.add('show');
         }
     }
 
@@ -1178,9 +1230,14 @@ class UIManager {
         if (modal) {
             modal.classList.remove('show');
         }
-        // Clear the current input if user cancels
+        // Clear the current input if user cancels and it was empty
         if (this.currentPOSInput) {
-            this.currentPOSInput.value = '';
+            const cellKey = this.currentPOSInput.dataset.cellKey;
+            // Only clear if no entry type was set (meaning user cancelled)
+            if (!this.entryTypes[cellKey]) {
+                this.currentPOSInput.value = '';
+            }
+            this.currentPOSInput.blur();
             this.currentPOSInput = null;
         }
     }
@@ -1190,6 +1247,15 @@ class UIManager {
      */
     confirmPOSEntry() {
         if (!this.currentPOSInput) return;
+
+        // Get amount from modal input
+        const amountInput = document.getElementById('pos-amount-input');
+        const amount = amountInput ? amountInput.value : '';
+        
+        if (!amount || parseFloat(amount) <= 0) {
+            alert('⚠️ Please enter a valid amount!');
+            return;
+        }
 
         // Get selected entry type (radio button)
         const selectedType = document.querySelector('input[name="pos-entry-type"]:checked');
@@ -1204,31 +1270,45 @@ class UIManager {
             const entryType = selectedType.value;
             const cellKey = this.currentPOSInput.dataset.cellKey;
             
-            // Store entry type and payment methods
+            // Get transaction reference if online payment is selected
+            let transactionRef = '';
+            if (paymentMethods.includes('online')) {
+                const transactionRefInput = document.getElementById('transaction-ref-input');
+                transactionRef = transactionRefInput ? transactionRefInput.value.trim() : '';
+            }
+            
+            // Store entry type, payment methods, and transaction reference
             this.entryTypes[cellKey] = {
                 type: entryType,
-                paymentMethods: paymentMethods
+                paymentMethods: paymentMethods,
+                transactionRef: transactionRef
             };
-            
-            // Add badges to input
-            this.addEntryBadges(this.currentPOSInput, entryType, paymentMethods);
             
             // Update sheet data
             const section = this.currentPOSInput.dataset.section;
             const rowIndex = parseInt(this.currentPOSInput.dataset.rowIndex);
-            const value = this.currentPOSInput.value;
             
             if (!this.sheetData[section][rowIndex]) {
                 this.sheetData[section][rowIndex] = { 
-                    value: '', 
+                    value: amount,
+                    amount: amount,
                     entryType: entryType,
-                    paymentMethods: paymentMethods 
+                    paymentMethods: paymentMethods,
+                    transactionRef: transactionRef
                 };
             } else {
+                this.sheetData[section][rowIndex].value = amount;
+                this.sheetData[section][rowIndex].amount = amount;
                 this.sheetData[section][rowIndex].entryType = entryType;
                 this.sheetData[section][rowIndex].paymentMethods = paymentMethods;
+                this.sheetData[section][rowIndex].transactionRef = transactionRef;
             }
-            this.sheetData[section][rowIndex].value = value;
+            
+            // Set the amount in the input field
+            this.currentPOSInput.value = amount;
+            
+            // Add badges to input
+            this.addEntryBadges(this.currentPOSInput, entryType, paymentMethods);
             
             // Check if we need to expand rows
             this.checkAndExpandRows(section);

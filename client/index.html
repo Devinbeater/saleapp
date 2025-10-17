@@ -106,54 +106,6 @@
                         <div class="formula-text" id="formula-text"></div>
                     </div>
                 </div>
-            </div>
-        </main>
-
-        <!-- Right Sidebar - Report & Actions -->
-        <aside class="sidebar">
-            <div class="sidebar-content">
-                <h3 class="sidebar-title">REPORT & ACTIONS</h3>
-
-                <!-- Cash Summary -->
-                <div class="cash-summary">
-                    <h4>Cash Summary</h4>
-                    <div class="summary-item">
-                        <label>Opening Cash:</label>
-                        <input type="number" id="opening-cash" class="opening-cash-input" placeholder="0" step="0.01">
-                    </div>
-                    <div class="summary-item">
-                        <label>TOTAL SALE:</label>
-                        <span class="calculated-field" id="total-sale">0</span>
-                    </div>
-                    <div class="summary-item">
-                        <label>Debit Cash:</label>
-                        <span class="calculated-field" id="debit-cash">0</span>
-                    </div>
-                    <div class="summary-item">
-                        <label>NET AMOUNT:</label>
-                        <span class="calculated-field" id="net-amount">0</span>
-                    </div>
-                    <div class="summary-item">
-                        <label>SWIPE:</label>
-                        <span class="calculated-field" id="swipe-total">0</span>
-                    </div>
-                    <div class="summary-item">
-                        <label>DEBTORS:</label>
-                        <span class="calculated-field" id="debtors-total">0</span>
-                    </div>
-                    <div class="summary-item">
-                        <label>Total QR Sale:</label>
-                        <span class="calculated-field" id="total-qr-sale">0</span>
-                    </div>
-                    <div class="summary-item">
-                        <label>Collection:</label>
-                        <span class="calculated-field" id="collection-total">0</span>
-                    </div>
-                    <div class="summary-item highlight">
-                        <label>Difference:</label>
-                        <span class="calculated-field" id="difference">0</span>
-                    </div>
-                </div>
 
                 <!-- Debtors Management -->
                 <div class="debtors-section">
@@ -210,6 +162,62 @@
                     </div>
                     <div class="expenses-list" id="expenses-list">
                         <!-- Dynamic expense entries -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar - Report & Actions -->
+        <aside class="sidebar">
+            <div class="sidebar-content">
+                <h3 class="sidebar-title">REPORT & ACTIONS</h3>
+
+                <!-- Cash Summary -->
+                <div class="cash-summary">
+                    <h4>Cash Summary</h4>
+                    <div class="summary-item">
+                        <label>Opening Cash:</label>
+                        <input type="number" id="opening-cash" class="opening-cash-input" placeholder="0" step="0.01">
+                    </div>
+                    <div class="summary-item">
+                        <label>TOTAL SALE:</label>
+                        <span class="calculated-field" id="total-sale">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <label>POS Sale (Cash):</label>
+                        <span class="calculated-field" id="pos-sale-cash">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <label>POS Sale (Online):</label>
+                        <span class="calculated-field" id="pos-sale-online">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <label>Debit Cash:</label>
+                        <span class="calculated-field" id="debit-cash">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <label>NET AMOUNT:</label>
+                        <span class="calculated-field" id="net-amount">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <label>SWIPE:</label>
+                        <span class="calculated-field" id="swipe-total">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <label>DEBTORS:</label>
+                        <span class="calculated-field" id="debtors-total">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <label>Total QR Sale:</label>
+                        <span class="calculated-field" id="total-qr-sale">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <label>Collection:</label>
+                        <span class="calculated-field" id="collection-total">0</span>
+                    </div>
+                    <div class="summary-item highlight">
+                        <label>Difference:</label>
+                        <span class="calculated-field" id="difference">0</span>
                     </div>
                 </div>
 
@@ -361,7 +369,7 @@
                             </span>
                         </label>
                         <label class="checkbox-option">
-                            <input type="checkbox" name="payment-method" value="online">
+                            <input type="checkbox" name="payment-method" value="online" id="online-payment-checkbox">
                             <span class="checkbox-label">
                                 <i class="fas fa-credit-card"></i>
                                 <strong>Online</strong>
@@ -369,6 +377,23 @@
                         </label>
                     </div>
                 </div>
+                
+                <!-- Amount Input Section -->
+                <div class="amount-input-section">
+                    <h4>Amount</h4>
+                    <div class="form-group">
+                        <input type="number" id="pos-amount-input" class="form-input" placeholder="Enter amount" step="0.01" min="0">
+                    </div>
+                </div>
+                
+                <!-- Transaction Reference (shown only for online) -->
+                <div class="transaction-ref-section" id="transaction-ref-section" style="display: none;">
+                    <h4>Transaction Reference Number</h4>
+                    <div class="form-group">
+                        <input type="text" id="transaction-ref-input" class="form-input" placeholder="Enter transaction reference number">
+                    </div>
+                </div>
+                
                 <div class="modal-actions">
                     <button class="btn btn-secondary" id="cancel-pos-entry">Cancel</button>
                     <button class="btn btn-primary" id="confirm-pos-entry">Confirm</button>

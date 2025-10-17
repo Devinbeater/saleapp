@@ -252,14 +252,59 @@ Denomination    No. of Pcs    Amount
             report += `Physical Cash Total:                            ₹${total.toFixed(2)}\n`;
         }
 
+        // Add POS payment breakdown section
+        const posCashSale = calculationsManager.getPOSSaleCash();
+        const posOnlineSale = calculationsManager.getPOSSaleOnline();
+        
+        if (posCashSale > 0 || posOnlineSale > 0) {
+            report += `
+═══════════════════════════════════════════════════════════════
+SECTION 7: POS PAYMENT BREAKDOWN
+═══════════════════════════════════════════════════════════════
+
+POS Sale (Cash):                                 ₹${posCashSale.toFixed(2)}
+POS Sale (Online):                               ₹${posOnlineSale.toFixed(2)}
+Total POS Sale:                                  ₹${calculationsManager.getTotalSale().toFixed(2)}
+`;
+            
+            // Add online transaction details if any
+            if (typeof uiManager !== 'undefined' && uiManager.sheetData && uiManager.sheetData.POS) {
+                const onlineTransactions = [];
+                uiManager.sheetData.POS.forEach((row, index) => {
+                    if (row.paymentMethods && row.paymentMethods.includes('online') && row.transactionRef) {
+                        onlineTransactions.push({
+                            srNo: index + 1,
+                            amount: parseFloat(row.amount) || 0,
+                            ref: row.transactionRef
+                        });
+                    }
+                });
+                
+                if (onlineTransactions.length > 0) {
+                    report += `
+Online Transactions with Reference Numbers:
+Sr.  Amount         Transaction Reference
+───────────────────────────────────────────────────────────────
+`;
+                    onlineTransactions.forEach(t => {
+                        report += `${String(t.srNo).padEnd(4)} `;
+                        report += `₹${t.amount.toFixed(2).padStart(12)} `;
+                        report += `${t.ref}\n`;
+                    });
+                }
+            }
+        }
+
         // Add summary calculations
         report += `
 ═══════════════════════════════════════════════════════════════
-SECTION 7: FINANCIAL SUMMARY
+SECTION 8: FINANCIAL SUMMARY
 ═══════════════════════════════════════════════════════════════
 
 Opening Cash:                                    ₹${openingCash.toFixed(2)}
 Total Sale:                                      ₹${calculationsManager.getTotalSale().toFixed(2)}
+  - Cash Sales:                                  ₹${posCashSale.toFixed(2)}
+  - Online Sales:                                ₹${posOnlineSale.toFixed(2)}
 Debit Cash:                                      ₹${calculationsManager.getDebitCash().toFixed(2)}
 
 Payment Breakdown:

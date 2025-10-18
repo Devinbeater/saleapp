@@ -164,6 +164,27 @@
                         <!-- Dynamic expense entries -->
                     </div>
                 </div>
+
+                <!-- Actions -->
+                <div class="actions-section">
+                    <h4>Actions</h4>
+                    <div class="export-buttons">
+                        <button class="btn btn-secondary" id="export-csv">
+                            <i class="fas fa-file-csv"></i> Export CSV
+                        </button>
+                        <button class="btn btn-secondary" id="export-pdf">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </button>
+                    </div>
+                    
+                    <button class="btn btn-primary save-btn" id="save-sheet">
+                        <i class="fas fa-save"></i> Save (Ctrl+S)
+                    </button>
+                    
+                    <button class="btn btn-white" id="generate-report">
+                        <i class="fas fa-file-alt"></i> Generate Report (Ctrl+P)
+                    </button>
+                </div>
             </div>
         </main>
 
@@ -273,27 +294,6 @@
                             <i class="fas fa-moon"></i> Close Day
                         </button>
                     </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="actions-section">
-                    <h4>Actions</h4>
-                    <div class="export-buttons">
-                        <button class="btn btn-secondary" id="export-csv">
-                            <i class="fas fa-file-csv"></i> Export CSV
-                        </button>
-                        <button class="btn btn-secondary" id="export-pdf">
-                            <i class="fas fa-file-pdf"></i> Export PDF
-                        </button>
-                    </div>
-                    
-                    <button class="btn btn-primary save-btn" id="save-sheet">
-                        <i class="fas fa-save"></i> Save (Ctrl+S)
-                    </button>
-                    
-                    <button class="btn btn-white" id="generate-report">
-                        <i class="fas fa-file-alt"></i> Generate Report (Ctrl+P)
-                    </button>
                 </div>
 
                 <!-- Load Previous Date -->
@@ -416,7 +416,13 @@
                 </div>
                 <div class="form-group">
                     <label for="debtor-salesman">Salesman</label>
-                    <input type="text" id="debtor-salesman" class="form-input" placeholder="Enter salesman name">
+                    <select id="debtor-salesman" class="form-input">
+                        <option value="">Select salesman</option>
+                        <option value="AKASH">AKASH</option>
+                        <option value="UMESH">UMESH</option>
+                        <option value="DILIP">DILIP</option>
+                        <option value="NA">NA</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="debtor-bill-no">Bill Number</label>

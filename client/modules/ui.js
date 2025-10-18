@@ -358,14 +358,31 @@ class UIManager {
      * Create an input element with event listeners
      */
     createInput(section, rowIndex, fieldType) {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'cell-input';
+        // Create dropdown for SALESMAN fields, otherwise create input
+        let input;
+        if (fieldType === 'SALESMAN') {
+            input = document.createElement('select');
+            input.className = 'cell-input';
+            
+            // Add dropdown options
+            const salesmanOptions = ['', 'AKASH', 'UMESH', 'DILIP', 'NA'];
+            salesmanOptions.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option;
+                opt.textContent = option || 'Select';
+                input.appendChild(opt);
+            });
+        } else {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'cell-input';
+            input.placeholder = fieldType === 'AMOUNT' ? '0' : '';
+        }
+        
         input.dataset.cellKey = `${section}_${fieldType}_${rowIndex}`;
         input.dataset.section = section;
         input.dataset.rowIndex = rowIndex;
         input.dataset.fieldType = fieldType;
-        input.placeholder = fieldType === 'AMOUNT' ? '0' : '';
         
         // Get value from sheetData if exists
         if (this.sheetData[section] && this.sheetData[section][rowIndex]) {
@@ -583,10 +600,19 @@ class UIManager {
 
             // SALESMAN
             const salesmanTd = document.createElement('td');
-            const salesmanInput = document.createElement('input');
-            salesmanInput.type = 'text';
+            const salesmanInput = document.createElement('select');
             salesmanInput.dataset.returnField = 'salesman';
             salesmanInput.dataset.returnIndex = i;
+            
+            // Add dropdown options
+            const salesmanOptions = ['', 'AKASH', 'UMESH', 'DILIP', 'NA'];
+            salesmanOptions.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option;
+                opt.textContent = option || 'Select salesman';
+                salesmanInput.appendChild(opt);
+            });
+            
             salesmanTd.appendChild(salesmanInput);
             tr.appendChild(salesmanTd);
 
